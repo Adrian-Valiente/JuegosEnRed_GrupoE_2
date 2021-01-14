@@ -81,9 +81,9 @@ Realizar las pruebas secundarias tiene sus ventajas pero también sus inconvenie
 
 
 
-![Diagrama](/Images/DiagramaNavegacion.png)
+![Diagrama](https://github.com/Elniadas/JuegosEnRed_GrupoE/blob/main/Images/DiagramaNavegacion.png)
 
-![Diagrama](/Images/Diagrama2.jpeg)
+![Diagrama](https://github.com/Elniadas/JuegosEnRed_GrupoE/blob/main/Images/Diagrama2.jpeg)
 
 > ### 2.3 Cámara
 
