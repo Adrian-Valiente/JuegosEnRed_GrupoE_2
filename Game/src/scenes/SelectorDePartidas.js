@@ -230,6 +230,7 @@ class SelectorDePartidas extends Phaser.Scene {
                     //Asigna un id a la partida y abre la lobby correspondiente
                     that.borrarIntervalos();
                     that.scene.stop("SelectorDePartidas")
+                    //that.scene.start("LobbyOnlineWS", { escena: null, soundManager: that.soundManager, partida: that.arrayPartidas[index] });
                     that.scene.start("LobbyOnline", { escena: null, soundManager: that.soundManager, partida: that.arrayPartidas[index] });
                 } else {
                     alert("Servidor completo, prueba mas tarde");

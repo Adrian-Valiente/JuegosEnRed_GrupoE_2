@@ -1,13 +1,13 @@
-class LobbyOnline extends Phaser.Scene {
+class LobbyOnlineWS extends Phaser.Scene {
     constructor() {
-        super({ key: "LobbyOnline" });
+        super({ key: "LobbyOnlineWS" });
 
     }
     init(data) {
         this.data = data;
         this.soundManager = data.soundManager
         this.partidaDatos = data.partida;
-        console.log(this.partidaDatos.nombre);
+        console.log(this.partidaDatos);
 
     }
 
@@ -19,7 +19,12 @@ class LobbyOnline extends Phaser.Scene {
 
 
     create() {
+        this.WShandler=null; 
+        //= new WebSocket('ws://127.0.0.1:8080/handler');
+
+       
         //this.scene.launch("Chat");
+        this.timer = false;
 
 
         //Fondo
@@ -76,7 +81,9 @@ class LobbyOnline extends Phaser.Scene {
 
 
                     that.getLobbyPlayers((players) => {
+                        alert("aquui?")
                         let existe = that.existeLobby(this.p1Name, players);
+                        alert("Esciste: "+existe)
                         if (!existe) {
                             //Ocultamos el campo de texto 
                             this.setVisible(false);
@@ -94,12 +101,27 @@ class LobbyOnline extends Phaser.Scene {
                             Usuario.status = "connecting";
                             Usuario.side = 1;
 
+                            that.WShandler = new WebSocket('ws://127.0.0.1:8080/Lobby_1');
+
+                            setTimeout(()=>{
+                                var msg = {
+                                    tipo: "ADD_PLAYER",
+                                    side: 1,
+                                    user: inputText.value,
+                                    status: "Logeando",
+                                }
+                                this.handler.send(JSON.stringify(msg));
+
+                            },2000)
                             //Conectamos al usuario
-                            that.conectarUsuario(Usuario, function () {
-                                //Función que actualiza el icono circular encima del jugador
-                                that.actualizarLista(() => {
-                                })
-                            });
+                            // that.conectarUsuario(Usuario, function () {
+                            //     //Función que actualiza el icono circular encima del jugador
+                            //     that.actualizarLista(() => {
+                            //     })
+                            // });
+
+
+
                             inputText.value = ''
                         } else {
                             //Si no se introduce nombre y se presiona enter, el texto parpadea
@@ -132,8 +154,7 @@ class LobbyOnline extends Phaser.Scene {
 
         });
 
-
-
+        //#region relleno
 
         this.summitP1 = this.add.sprite(player1.x - 5, player1.y + 230, "buttonPlay");
         this.summitP1.setFrame(0);
@@ -155,7 +176,15 @@ class LobbyOnline extends Phaser.Scene {
 
         this.summitP1Texto = this.add.bitmapText(this.summitP1.x - 47, this.summitP1.y + 7, 'MotionControl', "Loguearse", -25);
         this.summitP1Texto.tint = "#000000";
+
+        //#endregion
+
+        
+
         //Desconectamos al jugador si ya ha introducido un nombre
+
+        // todo BOTON
+
         this.summitP1.on("pointerup", () => {
             console.log("Pulsado")
             this.summitP1.setFrame(0);
@@ -163,18 +192,21 @@ class LobbyOnline extends Phaser.Scene {
             console.log(textoP1)
             if (textoP1 !== '') {
                 console.log("texto diferente a vacio")
-
+             
                 that.getLobbyPlayers((players) => {
-                    let existe = that.existeLobby(textoP1, players);
+                  
+                    let existe = that.existeLobby(this.p1Name, players);
+                    console.log(existe)
+             
                     if (!existe) {
-                        //Ocultamos el campo de texto 
-                        this.inputTextP1.setVisible(false);
 
-                        this.summitP1Texto.setVisible(false);
+                        //Ocultamos el campo de texto
+                       
+                        // ! this.setVisible(false);
                         //Quitamos los listeners
-                        this.inputTextP1.removeListener('keyup');
+                        // ! this.removeListener('keyup');
                         //Actualizamos el nombre del jugador, que en el comienzo empezó vacío
-                        this.p1Name = textoP1
+                        that.p1Name = textoP1
                         //Cambiamos "Introducir su nombre" por el nombre que el jugador se ha puesto
                         that.textP1.setText('Jugador 1 ' + textoP1);
                         //El estado del jugador ahora pasa a "loggeado"
@@ -185,13 +217,18 @@ class LobbyOnline extends Phaser.Scene {
                         Usuario.status = "connecting";
                         Usuario.side = 1;
 
-                        //Conectamos al usuario
-                        that.conectarUsuario(Usuario, function () {
-                            //Función que actualiza el icono circular encima del jugador
-                            that.actualizarLista(() => {
-                            })
-                        });
-                        this.inputTextP1.value = ''
+                        that.WShandler = new WebSocket('ws://127.0.0.1:8080/Lobby_1');
+
+                        setTimeout(()=>{
+                            var msg = {
+                                tipo: "ADD_PLAYER",
+                                side: 1,
+                                user: textoP1,
+                                status: "Logeando",
+                            }
+                            that.WShandler.send(JSON.stringify(msg));
+
+                        },2000)
                     } else {
                         //Si no se introduce nombre y se presiona enter, el texto parpadea
                         alert("Ese Usuario ya esta en uso, escoge otro")
@@ -484,13 +521,13 @@ class LobbyOnline extends Phaser.Scene {
             if (Usuario.user !== "" && Usuario.user !== null) {
                 //Desconectamos al jugador y actualizamos el JSON de Usuario
                 this.eliminarUsuario(Usuario, () => {
-
+                   
                     Usuario.user = "";
                     Usuario.status = "";
                     Usuario.id = 0;
                     Usuario.side = 0;
                     Usuario = null;
-
+                   
                     this.scene.start("SelectorDePartidas", { escena: null, soundManager: this.soundManager })
 
                 })
@@ -529,7 +566,10 @@ class LobbyOnline extends Phaser.Scene {
 
         //LO QUE SERIA EL MAIN EN EL OTRO SCRIPT//
 
-
+        ///////////////////////////////////
+        ////////////////////////////////
+        ////////////////////////////
+        //////////////////
 
         //////////////////////////////////////////////////////////
         ///                                                    ///
@@ -543,7 +583,7 @@ class LobbyOnline extends Phaser.Scene {
         //Cuando se carga la página mostramos a los usuarios conectados//
 
 
-        that.actualizarLista()
+        //that.actualizarLista()
 
         //Usuario que se conecta al servidor//
 
@@ -562,7 +602,8 @@ class LobbyOnline extends Phaser.Scene {
 
         //Simulamos una funcion Update//
 
-
+        //#region update
+    /*
         function actualizarSistema() {
 
             console.log("ACTUALIZACION USUARIOS")
@@ -780,14 +821,14 @@ class LobbyOnline extends Phaser.Scene {
 
 
         //Actualización del chat
-        setTimeout(() => {
-            //     console.log("Echandole hielos al chat")
+        // setTimeout(() => {
+        //     console.log("Echandole hielos al chat")
 
-            refrescarChat()
-            setTimeout(() => {
-                $("#chat").scrollTop($("#chat")[0].scrollHeight);
-            }, 800)
-        }, 500)
+        //     refrescarChat()
+        //     setTimeout(()=>{
+        //         $("#chat").scrollTop($("#chat")[0].scrollHeight);
+        //     },800)
+        // }, 500)
 
         //La función "Update" simulada se llama cada 9 segundos
         // setTimeout(() => {
@@ -795,12 +836,15 @@ class LobbyOnline extends Phaser.Scene {
         // }, 30000);
 
         //Mandamos el estado del jugador al servidor cada 500 ms
-        setTimeout(() => {
-            meActualizo();
 
-        }, 500);
+        // setTimeout(() => {
+        //     meActualizo();
 
+        // }, 500);
 
+        */
+
+        //#endregion 
 
         $("#summit").click(function () {
             let mensaje = $('#mensaje')
@@ -891,11 +935,13 @@ class LobbyOnline extends Phaser.Scene {
     getLobbyPlayers(callback) {
         var that = this
         let idPartida = this.partidaDatos.id
+      
         $.ajax({
-            url: 'http://localhost:8080/partida/' + idPartida,
+            url: 'http://localhost:8080/Lobby_1/players',
 
         }).done(function (partida) {
             //console.log("Partida de getLobby", partida)
+            //console.log(partida)
             if (typeof callback !== 'undefined') {
                 if (partida !== null) {
                     //asignamos la posición en la partida del jugador que se haya loggeado (P1 o P2)
@@ -909,9 +955,12 @@ class LobbyOnline extends Phaser.Scene {
                 var players = [partida.p1, partida.p2];
                 //console.log("Jugadores obtenidos", players)
                 //Devolvemos a los jugadores loggeados
+           
                 callback(players)
             }
-        }).fail(() => {
+        })
+        /*
+        .fail(() => {
             //Si el servidor no está disponible, borramos todos los intervalos de tiempo establecidos
             this.borrarIntervalos();
             alert("Los servidores no se encuentran disponibles, volviendo al menú principal");
@@ -923,6 +972,7 @@ class LobbyOnline extends Phaser.Scene {
             this.yo = null;
             this.scene.start("MAINMENU", { escena: null, soundManager: this.soundManager });
         })
+        */
 
     }
 
@@ -1006,14 +1056,11 @@ class LobbyOnline extends Phaser.Scene {
             }
         }).done(function (partida) {
             if (typeof callback !== 'undefined') {
-                callback(partida)
 
+                callback(partida)
             }
         })
     }
-
-
-
     updateLobby(player, callback) {
 
         let partidaID = this.partidaDatos.id;
@@ -1440,9 +1487,9 @@ class LobbyOnline extends Phaser.Scene {
             this.borrarIntervalos();
             this.scene.stop("Lobby");
             if (Usuarios[0].user === that.yo.user) {
-                this.scene.start("Scene_play_Online", { escena: null, soundManager: this.soundManager, users: { p1: Usuarios[0], p2: Usuarios[1] }, online: true, partida: this.partidaDatos, yo: Usuarios[0],lobby:this.partidaDatos });
+                this.scene.start("Scene_play_Online", { escena: null, soundManager: this.soundManager, users: { p1: Usuarios[0], p2: Usuarios[1] }, online: true, partida: this.partidaDatos, yo: Usuarios[0] });
             } else if (Usuarios[1].user === that.yo.user) {
-                this.scene.start("Scene_play_Online", { escena: null, soundManager: this.soundManager, users: { p1: Usuarios[0], p2: Usuarios[1] }, online: true, partida: this.partidaDatos, yo: Usuarios[1],lobby:this.partidaDatos });
+                this.scene.start("Scene_play_Online", { escena: null, soundManager: this.soundManager, users: { p1: Usuarios[0], p2: Usuarios[1] }, online: true, partida: this.partidaDatos, yo: Usuarios[1] });
             }
 
 
@@ -1484,7 +1531,10 @@ class LobbyOnline extends Phaser.Scene {
     existeLobby(name, players) {
 
         console.log(players)
-        console.log(name)
+        console.log("Nombre"+ name)
+        if(players[0]===undefined)
+        return false;
+
         for (let i = 0; i < players.length; i++) {
             if (players[i].user === name) {
                 if (players[i].status !== "connected" && players[i].status !== "missing" && players[i].status !== "ready") {
@@ -1512,13 +1562,13 @@ class LobbyOnline extends Phaser.Scene {
         //Escribimos el mensaje en un fichero de texto (fileWrite() en MensajeController.java)
         this.sendMenssage((sad) => {
             //Ponemos el mensaje que acabamos de mandar en el div
-            that.getChat((mensajes) => {
-                that.escribirMensajes(mensajes, () => {
+            that.getChat((mensajes)=>{
+                that.escribirMensajes(mensajes,()=>{
                     $("#chat").scrollTop($("#chat")[0].scrollHeight);
                 })
             });
-
-
+            
+          
         }, Mensaje)
 
     }
@@ -1530,7 +1580,7 @@ class LobbyOnline extends Phaser.Scene {
         for (let index = 0; index < mensajes.length; index++) {
             $("#chat").append("<p>" + mensajes[index] + "</p>");
         }
-
+       
         if (typeof callback !== 'undefined') {
             callback()
         }
@@ -1564,11 +1614,23 @@ class LobbyOnline extends Phaser.Scene {
     }
 
 
+onMensaje(){
 
+    this.WShandler.onmesage= (msg)=>{
+
+        let mensaje= msg.data
+        if(mensaje.tipo==="GET"){
+            let players= mensaje.players;
+
+        }
+
+    }
+
+}
 
 
 
 
 }
 
-export default LobbyOnline;
+export default LobbyOnlineWS;

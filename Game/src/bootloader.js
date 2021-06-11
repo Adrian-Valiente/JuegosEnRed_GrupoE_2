@@ -35,6 +35,9 @@ class Bootloader extends Phaser.Scene {
         this.load.image("SimbolosJ1T", "./assets/Tutorial/SimbolosJ1.png");
         this.load.image("SimbolosJ2T", "./assets/Tutorial/SimbolosJ2.png");
 
+        //Loading//
+
+        this.load.image("Loading", "./assets/carga.jpg");
 
         //Gimnasio//
 

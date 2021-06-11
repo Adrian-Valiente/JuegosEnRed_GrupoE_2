@@ -1,7 +1,7 @@
 import Escenario from '../gameObjects/Escenario.js';
-class Scene_play extends Phaser.Scene {
+class Scene_play_Online extends Phaser.Scene {
     constructor() {
-        super({ key: "Scene_play" });
+        super({ key: "Scene_play_Online" });
         this.escenasActivas = [false, false];
 
         this.escenarios = [];
@@ -9,53 +9,27 @@ class Scene_play extends Phaser.Scene {
     init(data) {
         this.soundManager = data.soundManager;
         this.data = data;
+        this.data.lobby;
         this.online = data.online
         if (this.online) {
             this.partidaDatos = data.partida;
             this.yo = data.yo
+            this.lobby=this.data.lobby;
             //playerPulse
-            var playerPulse = new WebSocket('ws://127.0.0.1:8080/playerPulse');
-            this.playerPulse = playerPulse;
+            var handler = new WebSocket('ws://127.0.0.1:8080/'+this.data.lobby.nombre);
+            this.handler = handler;
 
-            this.playerPulse.onerror = function (e) {
+            this.handler.onerror = function (e) {
                 console.log("WS error: " + e);
             }
 
 
-            this.playerPulse.onopen = function () {
+            this.handler.onopen = function () {
                 console.log("Estamos conectados al puerto, naaah de locos");
             }
-
-
-            //playerPosition
-            var playerPosition = new WebSocket('ws://127.0.0.1:8080/playerPosition');
-            this.playerPosition = playerPosition;
-            this.playerPosition.onerror = function (e) {
-                console.log("WS error: " + e);
-            }
-
-
-            //GameEvent
-
-            this.playerPosition.onopen = function () {
-                console.log("Estamos conectados al puerto, naaah de locos");
-            }
-
-            var gameEvent = new WebSocket('ws://127.0.0.1:8080/gameEvent');
-            this.gameEvent = gameEvent;
-            this.gameEvent.onerror = function (e) {
-                console.log("WS error: " + e);
-            }
-
-
-
-
-            this.gameEvent.onopen = function () {
-                console.log("Estamos conectados al puerto, naaah de locos");
-            }
-
-
-
+            
+         
+           
         }
 
     }
@@ -73,6 +47,7 @@ class Scene_play extends Phaser.Scene {
     create() {
 
         this.borrarIntervalos();
+        this.ActivarControles=false;
         /*        
            let tamanio=escenas.length;
              let i=0;
@@ -97,12 +72,14 @@ class Scene_play extends Phaser.Scene {
 
 
 
+        // ! poner un fondo enorme que tape todo para simular que esta cargando todo
 
+        this.loadingBG = this.add.image(0, 0, "Loading").setOrigin(0, 0).setSize(this.game.canvas.width, this.game.canvas.height);
 
         //Pensar esto un pcoo mejor
-        this.escenarios[0] = new Escenario("Cinta", 0, true);
+        this.escenarios[0] = new Escenario("Cinta", 4, true);
         this.escenarios[1] = new Escenario("Contador", 1, false);
-        this.escenarios[2] = new Escenario("Nieve", 4, false);
+        this.escenarios[2] = new Escenario("Nieve", 0, false);
         this.escenarios[3] = new Escenario("Electricidad", 2, true);
         this.escenarios[4] = new Escenario("Laboratorio", 3, false);
 
@@ -110,7 +87,7 @@ class Scene_play extends Phaser.Scene {
         var that = this;
 
         this.end = { player1: false, player2: false };
-
+        this.Eauxiliar = false;
 
         //Factor de suma 1180 * this.escenarios[i].pos
 
@@ -180,9 +157,6 @@ class Scene_play extends Phaser.Scene {
 
 
 
-        let groupCintaU = this.add.group()
-        groupCintaU.add(cintaU);
-
 
 
         this.particlesCPU = this.add.particles('flares')
@@ -228,10 +202,10 @@ class Scene_play extends Phaser.Scene {
         cinD.setScale(0.30);
 
         //Plataformas jugador 1
-        this.crearPlataformasGimnasioP1();
+        // !  this.crearPlataformasGimnasioP1();
 
         //Plataformas jugador 2
-        this.crearPlataformasGimnasioP2();
+        // ! this.crearPlataformasGimnasioP2();
 
         //Power Up jugador 1
         this.crearSpeedUpP1(825, 300, this.escenarios[0].pos);
@@ -366,10 +340,10 @@ class Scene_play extends Phaser.Scene {
 
 
         //Plataformas jugador 1
-        this.crearPlataformasContador1();
+        // ! this.crearPlataformasContador1();
 
         //Plataformas jugador 2
-        this.crearPlataformasContador2();
+        // ! this.crearPlataformasContador2();
 
         //Power Up jugador 1
         this.crearMenosTP1(720, 300, this.escenarios[1].pos);
@@ -391,7 +365,8 @@ class Scene_play extends Phaser.Scene {
         banderaU.displayWidth = this.game.canvas.width * 0.08;
         banderaU.setImmovable(true)
         banderaU.alpha = 1;
-        this.crearPlataformasNieve1();
+
+        //! this.crearPlataformasNieve1();
 
         //Parte jugador 2
 
@@ -404,7 +379,7 @@ class Scene_play extends Phaser.Scene {
         banderaD.displayHeight = this.game.canvas.height * 0.1;
         banderaD.displayWidth = this.game.canvas.width * 0.08;
         banderaD.setImmovable(true)
-        this.crearPlataformasNieve2();
+        // ! this.crearPlataformasNieve2();
 
 
 
@@ -449,10 +424,10 @@ class Scene_play extends Phaser.Scene {
         this.blurElectricidadU.alpha = 0;
 
         //Plataformas jugador 1
-        this.crearPlataformasElectricidad1(that);
+        // ! this.crearPlataformasElectricidad1(that);
 
         //Plataformas jugador 2
-        this.crearPlataformasElectricidad2(that);
+        // ! this.crearPlataformasElectricidad2(that);
 
         //Power Up jugador 1
         this.crearMenosTP1(15, 50, this.escenarios[3].pos);
@@ -539,7 +514,7 @@ class Scene_play extends Phaser.Scene {
         this.blurLaboratorioU.displayWidth = this.game.canvas.width;
         this.blurLaboratorioU.alpha = 0;
 
-        this.crearPlataformasLaboratorio1();
+        // ! this.crearPlataformasLaboratorio1();
 
         //POWER UPS JUGADOR 1
         this.crearSpeedUpP1(825, 300, this.escenarios[4].pos);
@@ -581,7 +556,7 @@ class Scene_play extends Phaser.Scene {
         this.blurLaboratorioD.displayWidth = this.game.canvas.width;
         this.blurLaboratorioD.alpha = 0;
 
-        this.crearPlataformasLaboratorio2();
+        // ! this.crearPlataformasLaboratorio2();
 
         //POWER UPS JUGADOR 2
         this.crearSpeedUpP2(825, 300, this.escenarios[4].pos);
@@ -702,7 +677,7 @@ class Scene_play extends Phaser.Scene {
 
 
 
-        this.CP1 = this.physics.add.overlap(this.playerU, groupCintaU, () => { this.Prueba(this.playerU) }, this.funcionOverlapP1, this);
+        this.CP1 = this.physics.add.overlap(this.playerU, cintaU, () => { this.Prueba(this.playerU) }, this.funcionOverlapP1, this);
         this.CP2 = this.physics.add.overlap(this.playerD, cintaD, () => { this.Prueba(this.playerD) }, this.funcionOverlapP2, this);
         this.CoP1 = this.physics.add.overlap(this.playerU, pruebaContador, () => { this.Prueba(this.playerU) }, this.funcionOverlapP1, this);
         this.CoP2 = this.physics.add.overlap(this.playerD, pruebaContador2, () => { this.Prueba(this.playerD) }, this.funcionOverlapP2, this);
@@ -753,6 +728,21 @@ class Scene_play extends Phaser.Scene {
         this.cam1.ignore(cronoJ2);
         this.cam2.ignore(this.TiempoP1);
         this.cam2.ignore(cronoJ1);
+
+
+
+        /*
+        * 1º Background
+        *
+        * 2º Cuando cada usuario carga envia un mensaje diciendo que esta al toque
+        * 
+        * 3º En el servidor ponemos algun tipo de contador o lo que sea y cuando vea que ese contador
+        *    llega a 2 o como veamos conveniente
+        * 
+        * 4º Este envia un mensaje diciendo eh loquete crea plataformas borra el background ese feo yyy
+        *    inicia los timers
+        */
+
 
 
 
@@ -845,49 +835,21 @@ class Scene_play extends Phaser.Scene {
 
 
 
-            if (this.playerPulse.readyState === 0) {
+            if (this.handler.readyState === 0) {
                 setTimeout(() => {
-                    this.playerPulseMnj();
-                    console.log("Recibo mensajes??");
-                    console.log("Recibo mensajes??");
-                    console.log("Recibo mensajes??");
-                    console.log("Recibo mensajes??");
+                    this.onMensajeHandler();
+                    let msg = {
+                        tipo: "CONECTADO"
+                    }
+
+                    this.handler.send(JSON.stringify(msg));
 
                 }, 3000)
             } else {
-                this.playerPulseMnj();
-                console.log("Recibo mensajes");
-                console.log("Recibo mensajes");
-                console.log("Recibo mensajes");
-                console.log("Recibo mensajes");
-                console.log("Recibo mensajes");
+                this.onMensajeHandler();
+
 
             }
-
-            if (this.playerPosition.readyState === 0) {
-                setTimeout(() => {
-                    this.PlayerPositionMnj();
-                    console.log("Recibo mensajes??");
-                    console.log("Recibo mensajes??");
-                    console.log("Recibo mensajes??");
-                    console.log("Recibo mensajes??");
-                }, 3000)
-            } else {
-                this.PlayerPositionMnj();
-                console.log("Recibo mensajes");
-                console.log("Recibo mensajes");
-                console.log("Recibo mensajes");
-                console.log("Recibo mensajes");
-
-            }
-            if (this.gameEvent.readyState === 0) {
-                setTimeout(() => {
-                    this.gameEventMnj();
-                }, 3000);
-            } else {
-                this.gameEventMnj();
-            }
-
 
         }
 
@@ -988,12 +950,13 @@ class Scene_play extends Phaser.Scene {
             }
 
 
-        } else {
+        } else if(this.online && this.ActivarControles) {
+
             if (this.yo.side === 1) {
                 if (!this.escenasActivas[0]) {
                     let w = false;
                     let a = false;
-
+                    let e = false;
                     let d = false;
                     let touching = true;
                     let t = time % 60;
@@ -1011,17 +974,6 @@ class Scene_play extends Phaser.Scene {
                             this.playerU.anims.play("SaltoIzquierdaP1", true);
                         }
 
-
-                        var msg = {
-                            w: w,
-                            a: a,
-                            side: 1,
-                            d: d,
-                            touching: touching
-                        }
-
-
-
                     }
                     if (this.keyboardP1.D.isDown === true) {
                         d = true;
@@ -1032,9 +984,6 @@ class Scene_play extends Phaser.Scene {
                             touching = false;
                             this.playerU.anims.play("SaltoDerechaP1", true);
                         }
-
-
-
 
 
                     }
@@ -1061,141 +1010,60 @@ class Scene_play extends Phaser.Scene {
 
                     }
 
-                    if (this.keyboardP1.W.isDown === true && this.playerU.body.touching.down) {
-                    
-                        this.playerU.setVelocityY(-750); //cambiar para que salte menos y poder bajar plataformas
-                        w = true;
-
-                        let msgf = {
-                            w: w,
-                            a: a,
-                            side: 1,
-                            d: d,
-                            touching: touching
-                        }
-                        this.playerPulse.send(JSON.stringify(msgf));
-                    }
-
-
-
-
-
                     var msg = {
+                        tipo: "BOTONES",
                         w: w,
                         a: a,
                         side: 1,
                         d: d,
+                        e: e,
                         touching: touching
                     }
-                    if (this.playerPulse.readyState === 1 && (t >= 20 && t <= 40)) {
-                        this.playerPulse.send(JSON.stringify(msg));
+
+                    if (this.keyboardP1.W.isDown === true && this.playerU.body.touching.down) {
+
+                        this.playerU.setVelocityY(-750); //cambiar para que salte menos y poder bajar plataformas
+                        w = true;
+
+                        let msgf = {
+                            tipo: "BOTONES",
+                            w: w,
+                            a: a,
+                            side: 1,
+                            d: d,
+                            e: e,
+                            touching: touching
+                        }
+                        this.handler.send(JSON.stringify(msgf));
                     }
 
-                    if (this.playerPosition.readyState === 1 && (t >= 20 && t <= 40)) {
+                    var msg = {
+                        tipo: "BOTONES",
+                        w: w,
+                        a: a,
+                        side: 1,
+                        d: d,
+                        e: e,
+                        touching: touching
+                    }
+                    if (this.handler.readyState === 1 && ((t >= 0 && t <= 5) || (t >= 10 && t <= 15) || (t >= 20 && t <= 25) || (t >= 30 && t <= 35))) {
+                        this.handler.send(JSON.stringify(msg));
+                    }
+
+                    if (this.handler.readyState === 1 && ((t >= 0 && t <= 5) || (t >= 10 && t <= 15) || (t >= 20 && t <= 25) || (t >= 30 && t <= 35))) {
                         var that = this;
                         let msgPos = {
+                            tipo: "POSICION",
                             x: that.playerU.x,
                             y: that.playerU.y,
                             side: 1
                         }
 
-                        this.playerPosition.send(JSON.stringify(msgPos));
+                        this.handler.send(JSON.stringify(msgPos));
                     }
 
 
                 }
-                /*
-                // Personaje 1
-                if (!this.escenasActivas[0]) {
-
-                    
-
-                    var jugador=this.yo;
-
-                    if (this.keyboardP1.W.isDown === true && this.playerU.body.touching.down) {
-                        this.playerU.setVelocityY(-750); //cambiar para que salte menos y poder bajar plataformas
-
-                        //Mensaje
-                        var position = { x: this.playerU.x, y: this.playerU.y };
-                        var msg = {
-                            user: jugador.user,
-                            status: jugador.status,
-                            id: jugador.id,
-                            side: jugador.side,
-                            x: position.x,
-                            y: position.y
-                        }
-                        
-                        if (this.connection.readyState === 1) {
-                            this.connection.send(JSON.stringify(msg));
-                        }
-                    }
-
-                    if (this.keyboardP1.A.isDown === true) {
-                        //Mensaje
-                        var position = { x: this.playerU.x, y: this.playerU.y };
-                        var msg = {
-                            user: jugador.user,
-                            status: jugador.status,
-                            id: jugador.id,
-                            side: jugador.side,
-                            x: position.x,
-                            y: position.y
-                        }
-
-                        if (this.connection.readyState === 1) {
-                            this.connection.send(JSON.stringify(msg));
-                        }
-                        this.playerU.body.setVelocityX(-this.playerU.velocidad);
-                        if (this.playerU.body.touching.down) {
-                            this.playerU.anims.play("CorrerIzquierdaP1", true);
-
-                            
-
-
-                        } else {
-                            this.playerU.anims.play("SaltoIzquierdaP1", true);
-                        }
-
-                    }
-                    if (this.keyboardP1.D.isDown === true) {
-                        this.playerU.body.setVelocityX(this.playerU.velocidad);
-                        //Mensaje
-                        var position = { x: this.playerU.x, y: this.playerU.y };
-                        var msg = {
-                            user: jugador.user,
-                            status: jugador.status,
-                            id: jugador.id,
-                            side: jugador.side,
-                            x: position.x,
-                            y: position.y
-                        }
-                        if (this.connection.readyState === 1) {
-                            this.connection.send(JSON.stringify(msg));
-                        }
-
-                        if (this.playerU.body.touching.down) {
-                            this.playerU.anims.play("CorrerDerechaP1", true);
-
-                            
-                        } else {
-                            this.playerU.anims.play("SaltoDerechaP1", true);
-                        }
-                    }
-
-                    if (this.keyboardP1.D.isDown === false && this.keyboardP1.A.isDown === false && this.keyboardP1.W.isDown === false) {
-                        if (this.playerU.body.velocity.x > 0) {
-                            this.playerU.anims.stop();
-                            this.playerU.anims.play("IdleDerechaP1", true);
-                        }
-                        if (this.playerU.body.velocity.x < 0) {
-                            this.playerU.anims.stop();
-                            this.playerU.anims.play("IdleIzquierdaP1", true);
-                        }
-                        this.playerU.body.setVelocityX(0);
-                    }
-
-                }//*/
 
             } else if (this.yo.side === 2) {
 
@@ -1203,7 +1071,7 @@ class Scene_play extends Phaser.Scene {
 
                     let w = false;
                     let a = false;
-
+                    let e = false;
                     let d = false;
                     let touching = true;
                     let t = time % 60;
@@ -1222,13 +1090,7 @@ class Scene_play extends Phaser.Scene {
                         }
 
 
-                        var msg = {
-                            w: w,
-                            a: a,
-                            side: 2,
-                            d: d,
-                            touching: touching
-                        }
+
 
 
 
@@ -1272,44 +1134,45 @@ class Scene_play extends Phaser.Scene {
                     }
 
                     if (this.keyboardP1.W.isDown === true && this.playerD.body.touching.down) {
-                        
+
                         this.playerD.setVelocityY(-750); //cambiar para que salte menos y poder bajar plataformas
                         w = true;
 
                         let msgf = {
+                            tipo: "BOTONES",
                             w: w,
                             a: a,
                             side: 2,
                             d: d,
+                            e: e,
                             touching: touching
                         }
-                        this.playerPulse.send(JSON.stringify(msgf));
+                        this.handler.send(JSON.stringify(msgf));
                     }
 
-
-
-
-
                     var msg = {
+                        tipo: "BOTONES",
                         w: w,
                         a: a,
                         side: 2,
                         d: d,
+                        e: e,
                         touching: touching
                     }
-                    if (this.playerPulse.readyState === 1 && (t >= 10 && t <= 30)) {
-                        this.playerPulse.send(JSON.stringify(msg));
+                    if (this.handler.readyState === 1 && ((t >= 5 && t <= 10) || (t >= 15 && t <= 20) || (t >= 25 && t <= 30) || (t >= 35 && t <= 40))) {
+                        this.handler.send(JSON.stringify(msg));
                     }
 
-                    if (this.playerPosition.readyState === 1 && (t >= 10 && t <= 30)) {
+                    if (this.handler.readyState === 1 && ((t >= 5 && t <= 10) || (t >= 15 && t <= 20) || (t >= 25 && t <= 30) || (t >= 35 && t <= 40))) {
                         var that = this;
                         let msgPos = {
+                            tipo: "POSICION",
                             x: that.playerD.x,
                             y: that.playerD.y,
                             side: 2
                         }
 
-                        this.playerPosition.send(JSON.stringify(msgPos));
+                        this.handler.send(JSON.stringify(msgPos));
                     }
 
 
@@ -1335,45 +1198,6 @@ class Scene_play extends Phaser.Scene {
 
             //this.keyboardP2.ESC.isDown=true;
         }
-
-        /*
-        if (this.online) {
-
-            var jugador = this.yo;
-
-            let t = time % 60;
-
-
-            if (jugador.side === 1 && (t >= 30 || t <= 33)) {
-                var position = { x: this.playerU.x, y: this.playerU.y };
-                // position.x = this.playerU.x;
-                // position.y = this.playerU.y;
-                console.log("Tiempoo:: ", time)
-                console.log("Tiempoo:: " + time)
-                var msg = {
-                    user: jugador.user,
-                    status: jugador.status,
-                    id: jugador.id,
-                    side: jugador.side,
-                    x: position.x,
-                    y: position.y
-                }
-                console.log("Enviandoo diria yoo nuse");
-                console.log(msg);
-                if (this.connection.readyState === 1) {
-                    console.log("ReadyState");
-                    this.connection.send(JSON.stringify(msg));
-                }
-            }
-
-
-
-
-        }
-        //*/
-
-
-
 
 
     }
@@ -1427,33 +1251,35 @@ class Scene_play extends Phaser.Scene {
 
     }
     PruebaP2(code) {
-        if (this.keyboardP2.SPACE.isDown === true && !this.escenasActivas[1]) {
-            let p = 0;
-            let e = 0;
-            for (let i = 0; i < this.escenarios.length; i++) {
-                if (code === this.escenarios[i].pos) {
-                    p = this.escenarios[i].nombre
-                    e = i;
-                }
 
+
+
+        let p = 0;
+        let e = 0;
+        for (let i = 0; i < this.escenarios.length; i++) {
+            if (code === this.escenarios[i].pos) {
+                p = this.escenarios[i].nombre
+                e = i;
             }
-
-
-            if (this.escenarios[e].completadoP2U === false) {
-                this.scene.launch(p + "P2", { escena: this, soundManager: this.soundManager });
-                this.escenasActivas[1] = true;
-
-            }
-            if (this.escenarios[e].completadoP2U === true && this.escenarios[e].doble === true) {
-                if (this.escenarios[e].completadoP2D === false) {
-                    console.log("INICIANDO PARTE 2")
-                    this.scene.launch(p + "P2V2", { escena: this, soundManager: this.soundManager });
-                    this.escenasActivas[1] = true;
-                }
-            }
-
 
         }
+
+
+        if (this.escenarios[e].completadoP2U === false) {
+            this.scene.launch(p + "P2", { escena: this, soundManager: this.soundManager });
+            this.escenasActivas[1] = true;
+
+        }
+        if (this.escenarios[e].completadoP2U === true && this.escenarios[e].doble === true) {
+            if (this.escenarios[e].completadoP2D === false) {
+                console.log("INICIANDO PARTE 2")
+                this.scene.launch(p + "P2V2", { escena: this, soundManager: this.soundManager });
+                this.escenasActivas[1] = true;
+            }
+        }
+
+
+
 
     }
 
@@ -1476,28 +1302,38 @@ class Scene_play extends Phaser.Scene {
             this.soundManager.play('TeletransporteFinal')
             if (this.online && this.yo.side === 1) {
                 var msg = {
+                    tipo: "EVENTOS",
                     portal: "null",
                     powerUp: "null",
                     teletransporte: factor
                 }
-                this.gameEvent.send(JSON.stringify(msg))
+                this.handler.send(JSON.stringify(msg))
             }
         }
 
     }
-    teletransporteD(player, factor, camara) {
-        if (this.keyboardP2.SPACE.isDown === true) {
+    teletransporteD(player, factor, camara, aux) {
+        if (this.keyboardP1.E.isDown === true || aux === true) {
+
             player.body.setVelocityX(0);
             player.body.setVelocityY(0);
             player.anims.stop();
             player.x = (1180 * (factor + 1) + 25);
-
-
             player.y = this.game.canvas.height - 55;
             camara.setBounds(0 + 1180 * (factor + 1), this.game.canvas.height / 2, this.game.canvas.width, this.game.canvas.height / 2)
 
             //Sonido
             this.soundManager.play('TeletransporteFinal')
+            if (this.online && this.yo.side === 2) {
+                var msg = {
+                    tipo: "EVENTOS",
+                    portal: "null",
+                    powerUp: "null",
+                    teletransporte: factor
+                }
+                this.handler.send(JSON.stringify(msg))
+            }
+
         }
 
     }
@@ -1516,6 +1352,10 @@ class Scene_play extends Phaser.Scene {
             this.elcronoP2 = setInterval(() => { this.tiempoP2(empP2) }, 10);
             this.playP2 = true;
         }
+        this.ActivarControles=true;
+
+
+
     }
 
     tiempoP1(empP1) {
@@ -2567,7 +2407,7 @@ class Scene_play extends Phaser.Scene {
     }
 
     crearPlataformasElectricidad1(that) {
-        var that_ = that;
+        var that_ = this;
 
         let p1_3_1 = this.physics.add.image(108 + 1180 * this.escenarios[3].pos, 300, "elecplatform").setImmovable(true);
         p1_3_1.displayHeight = 20;
@@ -2661,7 +2501,7 @@ class Scene_play extends Phaser.Scene {
     }
 
     crearPlataformasElectricidad2(that) {
-        var that_ = that;
+        var that_ = this;
 
         let p2_3_1 = this.physics.add.image(108 + 1180 * this.escenarios[3].pos, 660, "elecplatform").setImmovable(true);
         p2_3_1.displayHeight = 20;
@@ -2989,7 +2829,7 @@ class Scene_play extends Phaser.Scene {
         this.playerD.body.setSize(this.playerD.width * 0.25, this.playerD.height, true)
         this.playerU.setGravityY(3000);
         this.playerD.setGravityY(3000);
-        this.empezar();
+        // ! this.empezar();
     }
 
 
@@ -3015,28 +2855,12 @@ class Scene_play extends Phaser.Scene {
         this.pararP1();
         this.end.player1 = true;
 
-        if (this.online) {
-            this.borrarIntervalos();
-            this.yo.status = "win"
-            this.putPlayer(this.yo, () => {
-                this.scene.start("Victoria", {
-                    escena: null,
-                    soundManager: this.soundManager,
-                    ganador: 1,
-                    nameP1: this.playerU.name,
-                    nameP2: this.playerD.name,
-                    tiempoP1: this.tiempoFinalP1,
-                    tiempoP2: this.tiempoFinalP2,
-                    online: this.online
-                });
-
-            })
-
-        } else {
 
             if (this.end.player1 === true && this.end.player2 === true) {
                 this.borrarIntervalos();
-
+                if(this.online){
+                    this.handler.close();
+                }
                 this.scene.start("Victoria", {
                     escena: null,
                     soundManager: this.soundManager,
@@ -3045,12 +2869,12 @@ class Scene_play extends Phaser.Scene {
                     nameP2: this.playerD.name,
                     tiempoP1: this.tiempoFinalP1,
                     tiempoP2: this.tiempoFinalP2,
-                    online: this.online
+                    online: this.online,
+                    yo:this.yo,
+                    lobby:this.lobby,
+                    
                 });
             }
-        }
-
-
         bandera.destroy();
         this.BP1.destroy();
     }
@@ -3059,26 +2883,11 @@ class Scene_play extends Phaser.Scene {
         console.log("bandera p2")
         this.pararP2();
         this.end.player2 = true;
-        if (this.online) {
-
-            this.borrarIntervalos();
-            this.yo.status = "win"
-            this.putPlayer(this.yo, () => {
-                this.scene.start("Victoria", {
-                    escena: null,
-                    soundManager: this.soundManager,
-                    ganador: 2,
-                    nameP1: this.playerU.name,
-                    nameP2: this.playerD.name,
-                    tiempoP1: this.tiempoFinalP1,
-                    tiempoP2: this.tiempoFinalP2,
-                    online: this.online
-                });
-
-            })
-        } else {
             if (this.end.player1 === true && this.end.player2 === true) {
                 this.borrarIntervalos();
+                if(this.online){
+                    this.handler.close();
+                }
                 this.scene.start("Victoria", {
                     escena: null,
                     soundManager: this.soundManager,
@@ -3087,11 +2896,11 @@ class Scene_play extends Phaser.Scene {
                     nameP2: this.playerD.name,
                     tiempoP1: this.tiempoFinalP1,
                     tiempoP2: this.tiempoFinalP2,
-                    online: this.online
+                    online: this.online,
+                    yo:this.yo,
+                    lobby:this.lobby
                 });
             }
-        }
-
         bandera.destroy();
         this.BP2.destroy();
     }
@@ -3099,18 +2908,47 @@ class Scene_play extends Phaser.Scene {
 
 
     funcionOverlapP1() {
-        if (this.keyboardP1.E.isDown === true && !this.escenasActivas[0]) {
+        if (this.keyboardP1.E.isDown === true && !this.escenasActivas[0] && this.yo.side === 1) {
+
+            var msg = {
+                tipo: "BOTONES",
+                w: false,
+                a: false,
+                side: 1,
+                d: false,
+                e: true,
+                touching: false
+            }
+            this.handler.send(JSON.stringify(msg));
             return true
-        } else {
+        } else if (this.yo.side === 2 && this.Eauxiliar === true) {
+            this.Eauxiliar = false;
+            return true;
+        }
+        else {
             return false
         }
 
     }
 
     funcionOverlapP2() {
-        if (this.keyboardP2.SPACE.isDown === true && !this.escenasActivas[1]) {
+        if (this.keyboardP1.E.isDown === true && !this.escenasActivas[1] && this.yo.side === 2) {
+            var msg = {
+                tipo: "BOTONES",
+                w: false,
+                a: false,
+                side: 2,
+                d: false,
+                e: true,
+                touching: false
+            }
+            this.handler.send(JSON.stringify(msg));
             return true
-        } else {
+        } else if (this.yo.side === 1 && this.Eauxiliar === true) {
+            this.Eauxiliar = false;
+            return true;
+        }
+        else {
             return false
         }
 
@@ -3280,246 +3118,219 @@ class Scene_play extends Phaser.Scene {
 
     }
 
-    playerPulseMnj() {
-        var that = this; //console.log("HOOOOOOLAAa?22222222??")
-        this.playerPulse.onmessage = function (msg) {
-            //console.log("PlayerPulse")
-            var message = JSON.parse(msg.data)
-            //console.log(message)
-            if (message.side === 1) {
-                //console.log("Personaje 1??")
-                // Personaje 1
-                if (!that.escenasActivas[0]) {
+    playerPulseMnj(message) {
+        var that = this;
 
-                    if (message.w === true && message.touching) {
-                        that.playerU.setVelocityY(-750); //cambiar para que salte menos y poder bajar plataformas
+        if (message.side === 1) {
 
-                    }
+            if (!that.escenasActivas[0]) {
 
-                    if (message.a === true) {
-                        that.playerU.body.setVelocityX(-that.playerU.velocidad);
-                        if (message.touching) {
-                            that.playerU.anims.play("CorrerIzquierdaP1", true);
-                        } else {
-                            that.playerU.anims.play("SaltoIzquierdaP1", true);
-                        }
+                if (message.w === true && message.touching) {
+                    that.playerU.setVelocityY(-750);
 
-                    }
-                    if (message.d === true) {
-                        that.playerU.body.setVelocityX(that.playerU.velocidad);
-                        if (message.touching) {
-                            that.playerU.anims.play("CorrerDerechaP1", true);
-                        } else {
-                            that.playerU.anims.play("SaltoDerechaP1", true);
-                        }
-                    }
+                }
 
-                    if (message.d === false && message.a === false && message.w === false) {
-                        if (that.playerU.body.velocity.x > 0) {
-                            that.playerU.anims.stop();
-                            that.playerU.anims.play("IdleDerechaP1", true);
-                        }
-                        if (that.playerU.body.velocity.x < 0) {
-                            that.playerU.anims.stop();
-                            that.playerU.anims.play("IdleIzquierdaP1", true);
-                        }
-                        that.playerU.body.setVelocityX(0);
+                if (message.a === true) {
+                    that.playerU.body.setVelocityX(-that.playerU.velocidad);
+                    if (message.touching) {
+                        that.playerU.anims.play("CorrerIzquierdaP1", true);
+                    } else {
+                        that.playerU.anims.play("SaltoIzquierdaP1", true);
                     }
 
                 }
-            } else if (message.side === 2) {
-                if (!that.escenasActivas[1]) {
-                    if (message.w === true && message.touching) {
-                        that.playerD.setVelocityY(-750); //cambiar para que salte menos y poder bajar plataformas
-
-                    }
-
-                    if (message.a === true) {
-                        that.playerD.body.setVelocityX(-that.playerD.velocidad);
-                        if (message.touching) {
-                            that.playerD.anims.play("CorrerIzquierdaP2", true);
-                        } else {
-                            that.playerD.anims.play("SaltoIzquierdaP2", true);
-                        }
-
-                    }
-                    if (message.d === true) {
-                        that.playerD.body.setVelocityX(that.playerD.velocidad);
-                        if (message.touching) {
-                            that.playerD.anims.play("CorrerDerechaP2", true);
-                        } else {
-                            that.playerD.anims.play("SaltoDerechaP2", true);
-                        }
-                    }
-
-                    if (message.d === false && message.a === false && message.w === false) {
-                        if (that.playerD.body.velocity.x > 0) {
-                            that.playerD.anims.stop();
-                            that.playerD.anims.play("IdleDerechaP2", true);
-                        }
-                        if (that.playerD.body.velocity.x < 0) {
-                            that.playerD.anims.stop();
-                            that.playerD.anims.play("IdleIzquierdaP2", true);
-                        }
-                        that.playerD.body.setVelocityX(0);
+                if (message.d === true) {
+                    that.playerU.body.setVelocityX(that.playerU.velocidad);
+                    if (message.touching) {
+                        that.playerU.anims.play("CorrerDerechaP1", true);
+                    } else {
+                        that.playerU.anims.play("SaltoDerechaP1", true);
                     }
                 }
-            }
 
-            /*
-            if (message.side === "1") {
-                console.log("modificando")
-                let x = parseFloat(message.x);
-                let y = parseFloat(message.y);
-                if (x > that.playerU.x) {
-                    that.playerU.anims.play("CorrerDerechaP1", true);
-
-                } else if (x === that.playerU.x) {
-                    that.playerU.anims.play("IdleDerechaP1", true);
-                } else if (x < that.playerU.x) {
-                    console.log("pa la izquierda")
-                    console.log("pa la izquierda")
-                    console.log("pa la izquierda")
-                    that.playerU.anims.play("IdleIzquierdaP1", true);
+                if (message.d === false && message.a === false && message.w === false) {
+                    if (that.playerU.body.velocity.x > 0) {
+                        that.playerU.anims.stop();
+                        that.playerU.anims.play("IdleDerechaP1", true);
+                    }
+                    if (that.playerU.body.velocity.x < 0) {
+                        that.playerU.anims.stop();
+                        that.playerU.anims.play("IdleIzquierdaP1", true);
+                    }
+                    that.playerU.body.setVelocityX(0);
                 }
-                that.playerU.x = x;
-                console.log(that.playerU.x);
-                that.playerU.y = y;
-            }//*/
-        }
-    }
-    PlayerPositionMnj() {
-        var that = this; //console.log("HOOOOOO3223LAAa?22222222??")
-        this.playerPosition.onmessage = function (msg) {
-            //console.log("PlayerPosition")
-            var message = JSON.parse(msg.data)
-            //console.log(message)
-            if (message.side === 1) {
+                if (message.e === true) {
 
-                // Personaje 1
-                if (!that.escenasActivas[0]) {
-                    // console.log("Cambiando posicion")
-                    // console.log("x: " + message.x);
-                    //console.log("y: " + message.y);
-                    that.playerU.x = message.x;
-                    that.playerU.y = message.y;
-                }
-            } else if (message.side === 2) {
-                if (!that.escenasActivas[1]) {
-                    // console.log("Cambiando posicion P2")
-                    // console.log("x: " + message.x);
-                    //console.log("y: " + message.y);
-                    that.playerD.x = message.x;
-                    that.playerD.y = message.y;
-                }
-            }
-
-
-
-
-
-
-        }
-
-    }
-    gameEventMnj() {
-        var that = this; //console.log("HOOOOOO3223LAAa?22222222??")
-        this.gameEvent.onmessage = function (msg) {
-            //console.log("gameEvent!!")
-            var message = JSON.parse(msg.data)
-            //console.log(message)
-
-
-            // Personaje 1
-            if (message.portal !== "null") {
-
-                //Player 1
-                if (message.portal === "gimansioP1") {
-
-                    that.crearPortalGimnasioP1();
-
-                    that.escenarios[0].completadoP1U = true;
-                    that.PCU.tint.onChange(0xE74C3C)
-                } else if (message.portal === "contadorP1") {
-                    that.escenarios[1].completadoP1U = true;
-                    that.crearPortalPulsadorP1();
-                } else if (message.portal === "electricidadP1") {
-                    that.escenarios[3].completadoP1U = true;
-                    that.crearPortalElectricidadP1();
-                    that.PEPU.tint.onChange(0xE74C3C)
-                } else if (message.portal === "laboratorioP1") {
-                    that.crearPortalLaboratorioP1();
-                    that.escenarios[4].completadoP1U = true;
-                    that.LP1.destroy();
-                    that.particlesLPU.destroy()
-                }
-                //Player 2
-                else if (message.portal === "gimansioP2") {
-                    thata.escenarios[0].completadoP2U = true;
-                    that.crearPortalGimnasioP2();
-                    that.PCD.tint.onChange(0xE74C3C)
-                } else if (message.portal === "contadorP2") {
-                    that.escenarios[1].completadoP2U = true;
-                    that.crearPortalPulsadorP2();
-                } else if (message.portal === "electricidadP2") {
-                    that.escenarios[3].completadoP2U = true;
-                    that.crearPortalElectricidadP2();
-                    that.PEPD.tint.onChange(0xE74C3C)
-                } else if (message.portal === "laboratorioP2") {
-                    that.crearPortalLaboratorioP2();
-                    that.escenarios[4].completadoP2U = true;
-                    that.LP2.destroy();
-                    that.particlesLPD.destroy()
-                }
-
-            }
-            if (message.teletransporte !== "null") {
-
-                let pos = parseInt(message.teletransporte);
-                console.log("Pos : " + pos + " || Mensaje pos: " + message.teletransporte);
-                if (that.yo.side === 1) {
-                    that.teletransporte(that.playerD, pos, that.cam2, true);
+                    that.Eauxiliar = true;
                 } else {
-                    that.teletransporte(that.playerU, pos, that.cam1, true);
+                    that.Eauxiliar = false;
                 }
 
 
             }
+        } else if (message.side === 2) {
+            if (!that.escenasActivas[1]) {
+                if (message.w === true && message.touching) {
+                    that.playerD.setVelocityY(-750); //cambiar para que salte menos y poder bajar plataformas
 
-            if (message.powerUp !== "null") {
-                //Player 1
-                if (message.powerUp === "rayosD") {
-
-                    that.crearRayosP1();
-                    that.escenarios[0].completadoP1D = true;
-                    that.particlesCPU.destroy()
-                    that.CP1.destroy()
-
-
-                } else if (message.powerUp === "masP1") {
-                    that.crearMasTP1();
-                } else if (message.powerUp === "blindP1") {
-                    that.crearBlindP1();
-                    that.escenarios[3].completadoP1D = true;
-                    that.particlesEPU.destroy()
-                    that.escena.EP1.destroy();
                 }
-                //Player 2
-                else if (message.powerUp === "rayosU") {
-                    that.crearRayosP2();
-                    that.escenarios[0].completadoP2D = true;
-                    that.particlesCPD.destroy()
-                    that.CP2.destroy()
 
-                } else if (message.powerUp === "masP2") {
-                    that.crearMasTP2();
-                } else if (message.powerUp === "blindP2") {
-                    that.crearBlindP1();
-                    that.escenarios[3].completadoP2D = true;
-                    that.particlesEPD.destroy()
-                    that.escena.EP2.destroy();
+                if (message.a === true) {
+                    that.playerD.body.setVelocityX(-that.playerD.velocidad);
+                    if (message.touching) {
+                        that.playerD.anims.play("CorrerIzquierdaP2", true);
+                    } else {
+                        that.playerD.anims.play("SaltoIzquierdaP2", true);
+                    }
+
                 }
+                if (message.d === true) {
+                    that.playerD.body.setVelocityX(that.playerD.velocidad);
+                    if (message.touching) {
+                        that.playerD.anims.play("CorrerDerechaP2", true);
+                    } else {
+                        that.playerD.anims.play("SaltoDerechaP2", true);
+                    }
+                }
+
+                if (message.d === false && message.a === false && message.w === false) {
+                    if (that.playerD.body.velocity.x > 0) {
+                        that.playerD.anims.stop();
+                        that.playerD.anims.play("IdleDerechaP2", true);
+                    }
+                    if (that.playerD.body.velocity.x < 0) {
+                        that.playerD.anims.stop();
+                        that.playerD.anims.play("IdleIzquierdaP2", true);
+                    }
+                    that.playerD.body.setVelocityX(0);
+                }
+
+                if (message.e === true) {
+
+                    that.Eauxiliar = true;
+                } else {
+                    that.Eauxiliar = false;
+                }
+
             }
+        }
+
+
+    }
+
+
+    PlayerPositionMnj(message) {
+        var that = this;
+        if (message.side === 1) {
+            //console.log(message)
+            // Personaje 1
+            if (!that.escenasActivas[0]) {
+                that.playerU.x = message.x;
+                that.playerU.y = message.y;
+            }
+        } else if (message.side === 2) {
+            if (!that.escenasActivas[1]) {
+                that.playerD.x = message.x;
+                that.playerD.y = message.y;
+            }
+        }
+
+    }
+
+
+    gameEventMnj(message) {
+        var that = this;
+        if (message.portal !== "null") {
+
+            //Player 1
+            if (message.portal === "gimansioP1") {
+
+                that.crearPortalGimnasioP1();
+
+                that.escenarios[0].completadoP1U = true;
+                that.PCU.tint.onChange(0xE74C3C)
+            } else if (message.portal === "contadorP1") {
+                that.escenarios[1].completadoP1U = true;
+                that.crearPortalPulsadorP1();
+            } else if (message.portal === "electricidadP1") {
+                that.escenarios[3].completadoP1U = true;
+                that.crearPortalElectricidadP1();
+                that.PEPU.tint.onChange(0xE74C3C)
+            } else if (message.portal === "laboratorioP1") {
+                that.crearPortalLaboratorioP1();
+                that.escenarios[4].completadoP1U = true;
+                that.LP1.destroy();
+                that.particlesLPU.destroy()
+            }
+            //Player 2
+            else if (message.portal === "gimansioP2") {
+                that.escenarios[0].completadoP2U = true;
+                that.crearPortalGimnasioP2();
+                that.PCD.tint.onChange(0xE74C3C)
+            } else if (message.portal === "contadorP2") {
+                that.escenarios[1].completadoP2U = true;
+                that.crearPortalPulsadorP2();
+            } else if (message.portal === "electricidadP2") {
+                that.escenarios[3].completadoP2U = true;
+                that.crearPortalElectricidadP2();
+                that.PEPD.tint.onChange(0xE74C3C)
+            } else if (message.portal === "laboratorioP2") {
+                that.crearPortalLaboratorioP2();
+                that.escenarios[4].completadoP2U = true;
+                that.LP2.destroy();
+                that.particlesLPD.destroy()
+            }
+
+        }
+        if (message.teletransporte !== "null") {
+
+            let pos = parseInt(message.teletransporte);
+            console.log("Pos : " + pos + " || Mensaje pos: " + message.teletransporte);
+            if (that.yo.side === 1) {
+                that.teletransporteD(that.playerD, pos, that.cam2, true);
+            } else {
+                that.teletransporte(that.playerU, pos, that.cam1, true);
+            }
+
+
+        }
+        if (message.powerUp !== "null") {
+            //Player 1
+            if (message.powerUp === "rayosD") {
+
+                that.crearRayosP1();
+                that.escenarios[0].completadoP1D = true;
+                that.particlesCPU.destroy()
+                that.CP1.destroy()
+
+
+            } else if (message.powerUp === "masP1") {
+                that.crearMasTP1();
+            } else if (message.powerUp === "blindP1") {
+                that.crearBlindP1();
+                that.escenarios[3].completadoP1D = true;
+                that.particlesEPU.destroy()
+                that.escena.EP1.destroy();
+            }
+            //Player 2
+            else if (message.powerUp === "rayosU") {
+                that.crearRayosP2();
+                that.escenarios[0].completadoP2D = true;
+                that.particlesCPD.destroy()
+                that.CP2.destroy()
+
+            } else if (message.powerUp === "masP2") {
+                that.crearMasTP2();
+            } else if (message.powerUp === "blindP2") {
+                that.crearBlindP1();
+                that.escenarios[3].completadoP2D = true;
+                that.particlesEPD.destroy()
+                that.escena.EP2.destroy();
+            }
+
+
+
+
 
 
 
@@ -3527,36 +3338,41 @@ class Scene_play extends Phaser.Scene {
     }
 
 
+    onMensajeHandler() {
+        var that = this;
+        this.handler.onmessage = function (msg) {
+            var message = JSON.parse(msg.data)
+            if (message.tipo != "POSICION" && message.tipo != "EVENTOS" && message.tipo != "BOTONES")
+                console.log("message, " + message.tipo, message);
+
+            if (message.tipo === "POSICION") {
+                that.PlayerPositionMnj(message);
+            } else if (message.tipo === "BOTONES") {
+                that.playerPulseMnj(message);
+            } else if (message.tipo === "EVENTOS") {
+                that.gameEventMnj(message);
+            } else if (message.tipo === "CREAR") {
+                that.crearPlataformasContador1();
+                that.crearPlataformasContador2();
+                that.crearPlataformasElectricidad1();
+                that.crearPlataformasElectricidad2();
+                that.crearPlataformasGimnasioP1();
+                that.crearPlataformasGimnasioP2();
+                that.crearPlataformasLaboratorio1();
+                that.crearPlataformasLaboratorio2();
+                that.crearPlataformasNieve1();
+                that.crearPlataformasNieve2();
+
+                that.empezar();
+                that.loadingBG.destroy();
+            }
+
+        }
+
+
+    }
 }
 
 
 
-
-
-
-/*
-  var particles = this.add.particles('snowFlake')
-  particles.depth = -10
- 
-  var xd = particles.createEmitter({
-      x: this.game.canvas.width / 2,
-      y: -150,
-      lifespan: 8000,
-      speedX: { min: -this.game.canvas.width / 2, max: this.game.canvas.width / 2 },
-      speedY: { min: +100, max: +150, steps: 1 },
-      scale: { start: 0.1, end: 0 },
-      blendMode: 'ADD'
-  });
- 
-  window.xd = xd;
-  //*/
-
-
-
-
-
-
-
-
-
-export default Scene_play;
+export default Scene_play_Online;

@@ -331,10 +331,6 @@ class Lobby extends Phaser.Scene {
     }
 
 
-    update() {
-
-
-    }
 
 
 

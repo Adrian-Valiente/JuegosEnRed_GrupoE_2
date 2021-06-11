@@ -6,6 +6,7 @@ class ContadorP1 extends Phaser.Scene {
     init(data) {
         this.data = data;
         this.soundManager = data.soundManager
+        this.online = this.data.escena.online
     }
 
     preload() {
@@ -30,7 +31,7 @@ class ContadorP1 extends Phaser.Scene {
 
 
 
-        this.keyboard = this.input.stopPropagation().keyboard.addKeys('D,S');
+
 
 
         this.play = false;
@@ -42,8 +43,22 @@ class ContadorP1 extends Phaser.Scene {
         this.TiempoP1 = this.add.bitmapText(this.game.canvas.width * 0.46, this.game.canvas.height * 0.28, 'Digitalism', "00 : 00", 45);
 
 
+        this.keyboard = this.input.stopPropagation().keyboard.addKeys('D,S');
         this.input.keyboard.on('keyup-' + 'D', this.unlock.bind(this));
         this.input.keyboard.on('keyup-' + 'S', this.unlock.bind(this));
+        if (this.online && this.data.escena.yo.side === 2) {
+
+            this.onMensajeHandler();
+        
+        } else {
+
+            this.keyboard = this.input.stopPropagation().keyboard.addKeys('D,S');
+
+            this.input.keyboard.on('keyup-' + 'D', this.unlock.bind(this));
+            this.input.keyboard.on('keyup-' + 'S', this.unlock.bind(this));
+        }
+
+
 
         this.keyLock = false;
 
@@ -53,54 +68,163 @@ class ContadorP1 extends Phaser.Scene {
     }
     unlock() {
         console.log("unlock")
+        if (this.online && this.data.escena.yo.side === 1) {
+            var msg = {
+                tipo: "PRUEBA",
+                a: false,
+                d: false,
+                w: false,
+                s: false,
+                e: false
 
+            }
+            this.data.escena.handler.send(JSON.stringify(msg));
+        }
         this.keyLock = false;
     }
 
 
     update() {
+        if (this.online) {
+            if ((this.keyboard.S.isDown === true && this.keyLock === false && this.pulsar === true && this.pulsadorA.frame.name === 3 && this.data.escena.yo.side === 1)) {
+                this.keyLock = true
+                this.parar();
+                this.pintarTiempo();
+                this.pulsadorA.play('PulsadorB');
 
-        if (this.keyboard.S.isDown === true && this.keyLock === false && this.pulsar === true && this.pulsadorA.frame.name === 3) {
-            this.keyLock = true
-            this.parar();
-            this.pintarTiempo();
-            this.pulsadorA.play('PulsadorB');
-            this.pulsar = false;
+                this.pulsar = false;
 
+                if (this.online && this.data.escena.yo.side === 1) {
+                    
+                    
 
-            console.log(this.Marca)
-            if (this.Marca >= 650 && this.Marca <= 750) {
-                console.log("Has ganado un abrazo");
-                this.data.escena.particlesContPU.destroy();
-                this.completado=true
-                if(this.Marca >= 698 && this.Marca<=702) {
-                    console.log("Practicamente clavao si no clavao")
-                    this.data.escena.crearMasTP1(); 
+                    var msg = {
+                        tipo: "PRUEBA",
+                        a: false,
+                        d: false,
+                        w: false,
+                        s: true,
+                        e: false,
+                        dato: this.Marca    
+
+                    }
+                    this.data.escena.handler.send(JSON.stringify(msg));
                 }
-            }
-              else {
-                console.log("te toca probar de nuevo")
-            }
 
-            setTimeout(() => {
-                this.data.escena.escenasActivas[0] = false;
-                this.data.escena.escBU2.alpha = 0;
-                
-                
-                if(this.completado===true){
-                    this.data.escena.escenarios[1].completadoP1U=true;
-                    this.data.escena.CoP1.destroy();
-                    this.data.escena.crearPortalPulsadorP1();
+                console.log(this.Marca)
+                if (this.Marca >= 650 && this.Marca <= 750) {
+                    console.log("Has ganado un abrazo");
+                    this.data.escena.particlesContPU.destroy();
+                    this.completado = true
+                    // ? if (this.data.escena.online) {
+                    //     var msg = {
+                    //         tipo: "EVENTOS",
+                    //         portal: "contadorP1",
+                    //         powerUp: "null",
+                    //         teletransporte: "null"
+                    //     }
+
+                    // }
+                    if (this.Marca >= 698 && this.Marca <= 702) {
+                        console.log("Practicamente clavao si no clavao")
+                        this.data.escena.crearMasTP1();
+                        // ? if (this.data.escena.online) {
+                        //     msg.powerUp = "masP1"
+                        // }
+                    }
+                    if (this.data.escena.online && this.data.escena.yo.side === 2) {
+                        // ? this.data.escena.handler.send(JSON.stringify(msg));
+                    }
                 }
-                this.scene.stop(this)
-            }, 1200);
+                else {
+                    console.log("te toca probar de nuevo")
+                }
+
+                setTimeout(() => {
+                    this.data.escena.escenasActivas[0] = false;
+                    this.data.escena.escBU2.alpha = 0;
 
 
+                    if (this.completado === true) {
+
+                        this.data.escena.escenarios[1].completadoP1U = true;
+                        this.data.escena.CoP1.destroy();
+                        this.data.escena.crearPortalPulsadorP1();
+                    }
+                    if (this.online && this.data.escena.yo.side === 2) {
+
+                        this.onMensajeHandler();
+               
+                    }
+
+                    this.scene.stop(this)
+                }, 1200);
+
+
+            }
+
+        } else {
+            if (this.keyboard.S.isDown === true && this.keyLock === false && this.pulsar === true && this.pulsadorA.frame.name === 3) {
+                this.keyLock = true
+                this.parar();
+                this.pintarTiempo();
+                this.pulsadorA.play('PulsadorB');
+
+                this.pulsar = false;
+
+
+                console.log(this.Marca)
+                if (this.Marca >= 650 && this.Marca <= 750) {
+                    console.log("Has ganado un abrazo");
+                    this.data.escena.particlesContPU.destroy();
+                    this.completado = true
+                    if (this.data.escena.online) {
+                        var msg = {
+                            tipo: "EVENTOS",
+                            portal: "contadorP1",
+                            powerUp: "null",
+                            teletransporte: "null"
+                        }
+
+                    }
+                    if (this.Marca >= 698 && this.Marca <= 702) {
+                        console.log("Practicamente clavao si no clavao")
+                        this.data.escena.crearMasTP1();
+                        if (this.data.escena.online) {
+                            msg.powerUp = "masP1"
+                        }
+                    }
+                    if (this.data.escena.online) {
+                        this.data.escena.handler.send(JSON.stringify(msg));
+                    }
+                }
+                else {
+                    console.log("te toca probar de nuevo")
+                }
+
+                setTimeout(() => {
+                    this.data.escena.escenasActivas[0] = false;
+                    this.data.escena.escBU2.alpha = 0;
+
+
+                    if (this.completado === true) {
+                        this.data.escena.escenarios[1].completadoP1U = true;
+                        this.data.escena.CoP1.destroy();
+                        this.data.escena.crearPortalPulsadorP1();
+                    }
+                    this.scene.stop(this)
+                }, 1200);
+
+
+            }
         }
 
 
 
     }
+
+
+    //#region  timer
 
     empezar() {
         if (this.play == false) {
@@ -108,7 +232,7 @@ class ContadorP1 extends Phaser.Scene {
             this.elcrono = setInterval(() => { this.tiempo() }, 10);   //Funcion temporizador cada 10 ms llama a la funcion tiempo
             this.play = true;                           //Reloj puesta en marcha
             this.soundManager.play('Reloj');                  //Poner el audio del reloj
-                 
+
         }
     }
 
@@ -135,6 +259,7 @@ class ContadorP1 extends Phaser.Scene {
         }
         if (this.Marca >= 400 && this.Marca <= 401) {
             this.pulsar = true;
+
             setTimeout(() => { this.pulsadorA.play('PulsadorC'); }, 100);
             this.TiempoP1.setText([
                 "4" + " : " + "00"
@@ -145,10 +270,22 @@ class ContadorP1 extends Phaser.Scene {
 
 
     pintarTiempo(sg, cs) {
+        if (sg !== undefined && sg !== null) {
+            if(sg<=9){
+            this.TiempoP1.setText([
+                "0"+sg + " : " + cs
+            ]);
+        }else{
+            this.TiempoP1.setText([
+                sg + " : " + cs
+            ]);
+        }
+        } else {
+            this.TiempoP1.setText([
+                this.sg + " : " + this.cs
+            ]);
 
-        this.TiempoP1.setText([
-            this.sg + " : " + this.cs
-        ]);
+        }
 
     }
 
@@ -159,6 +296,74 @@ class ContadorP1 extends Phaser.Scene {
         }
     }
 
+
+    //#endregion
+
+
+    onMensajeHandler() {
+        var that = this;
+        this.data.escena.handler.onmessage = function (msg) {
+
+            var message = JSON.parse(msg.data)
+            //console.log("message, "+ message.tipo ,message);
+            if (message.tipo === "POSICION") {
+
+                that.data.escena.PlayerPositionMnj(message);
+            } else if (message.tipo === "BOTONES") {
+                that.data.escena.playerPulseMnj(message);
+            } else if (message.tipo === "EVENTOS") {
+                that.data.escena.gameEventMnj(message);
+            } else if (message.tipo === "PRUEBA") {
+
+
+                // * PRUEBA
+
+                if (message.s === true) {
+                    that.parar();
+                    that.Marca = message.dato;
+                    let sg =Math.floor(that.Marca/100)
+                    let cg= that.Marca%100;
+                
+                    that.pintarTiempo(sg,cg);
+                    that.pulsadorA.play('PulsadorB');
+                    
+                    console.log(that.Marca)
+                    if (that.Marca >= 650 && that.Marca <= 750) {
+                        console.log("Has ganado un abrazo");
+                        that.data.escena.particlesContPU.destroy();
+                        that.completado = true
+
+                        if (that.Marca >= 698 && that.Marca <= 702) {
+                            console.log("Practicamente clavao si no clavao")
+                            that.data.escena.crearMasTP1();
+                        }
+
+                    }
+                    else {
+                        console.log("te toca probar de nuevo")
+                    }
+
+                    setTimeout(() => {
+                        that.data.escena.escenasActivas[0] = false;
+                        that.data.escena.escBU2.alpha = 0;
+
+
+                        if (that.completado === true) {
+
+                            that.data.escena.escenarios[1].completadoP1U = true;
+                            that.data.escena.CoP1.destroy();
+                            that.data.escena.crearPortalPulsadorP1();
+                        }
+                        that.scene.stop(that)
+                    }, 1200);
+                }
+
+            }
+
+        }
+
+
+    }
 
 
 
