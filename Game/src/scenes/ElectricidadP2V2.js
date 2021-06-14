@@ -360,7 +360,7 @@ class ElectricidadP2V2 extends Phaser.Scene {
                 this.data.escena.blurElectricidadD.alpha = 0;
                 this.data.escena.EP2.destroy();
                 this.data.escena.crearBlindP2();
-                if (this.online && this.data.escena.yo.side == 2) {
+                if (this.online && this.data.escena.yo.side == 1) {
                     this.data.escena.onMensajeHandler();
 
                 }

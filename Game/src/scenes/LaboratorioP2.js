@@ -394,7 +394,7 @@ class LaboratorioP2 extends Phaser.Scene {
                 this.data.escena.blurLaboratorioD.alpha = 0;
                 this.data.escena.crearPortalLaboratorioP2();
                 if (this.data.escena.online) {
-                    if (this.online && this.data.escena.yo.side == 2) {
+                    if (this.online && this.data.escena.yo.side == 1) {
                         this.data.escena.onMensajeHandler();
                     }
                 }

@@ -28,12 +28,6 @@ class ContadorP1 extends Phaser.Scene {
 
         this.pulsar = false
 
-
-
-
-
-
-
         this.play = false;
         this.cro = 0;
 
@@ -49,7 +43,7 @@ class ContadorP1 extends Phaser.Scene {
         if (this.online && this.data.escena.yo.side === 2) {
 
             this.onMensajeHandler();
-        
+
         } else {
 
             this.keyboard = this.input.stopPropagation().keyboard.addKeys('D,S');
@@ -95,8 +89,8 @@ class ContadorP1 extends Phaser.Scene {
                 this.pulsar = false;
 
                 if (this.online && this.data.escena.yo.side === 1) {
-                    
-                    
+
+
 
                     var msg = {
                         tipo: "PRUEBA",
@@ -105,7 +99,7 @@ class ContadorP1 extends Phaser.Scene {
                         w: false,
                         s: true,
                         e: false,
-                        dato: this.Marca    
+                        dato: this.Marca
 
                     }
                     this.data.escena.handler.send(JSON.stringify(msg));
@@ -151,11 +145,7 @@ class ContadorP1 extends Phaser.Scene {
                         this.data.escena.CoP1.destroy();
                         this.data.escena.crearPortalPulsadorP1();
                     }
-                    if (this.online && this.data.escena.yo.side === 2) {
 
-                        this.onMensajeHandler();
-               
-                    }
 
                     this.scene.stop(this)
                 }, 1200);
@@ -271,15 +261,15 @@ class ContadorP1 extends Phaser.Scene {
 
     pintarTiempo(sg, cs) {
         if (sg !== undefined && sg !== null) {
-            if(sg<=9){
-            this.TiempoP1.setText([
-                "0"+sg + " : " + cs
-            ]);
-        }else{
-            this.TiempoP1.setText([
-                sg + " : " + cs
-            ]);
-        }
+            if (sg <= 9) {
+                this.TiempoP1.setText([
+                    "0" + sg + " : " + cs
+                ]);
+            } else {
+                this.TiempoP1.setText([
+                    sg + " : " + cs
+                ]);
+            }
         } else {
             this.TiempoP1.setText([
                 this.sg + " : " + this.cs
@@ -321,12 +311,12 @@ class ContadorP1 extends Phaser.Scene {
                 if (message.s === true) {
                     that.parar();
                     that.Marca = message.dato;
-                    let sg =Math.floor(that.Marca/100)
-                    let cg= that.Marca%100;
-                
-                    that.pintarTiempo(sg,cg);
+                    let sg = Math.floor(that.Marca / 100)
+                    let cg = that.Marca % 100;
+
+                    that.pintarTiempo(sg, cg);
                     that.pulsadorA.play('PulsadorB');
-                    
+
                     console.log(that.Marca)
                     if (that.Marca >= 650 && that.Marca <= 750) {
                         console.log("Has ganado un abrazo");
@@ -353,7 +343,15 @@ class ContadorP1 extends Phaser.Scene {
                             that.data.escena.escenarios[1].completadoP1U = true;
                             that.data.escena.CoP1.destroy();
                             that.data.escena.crearPortalPulsadorP1();
+
                         }
+
+
+
+                        that.data.escena.onMensajeHandler();
+
+
+
                         that.scene.stop(that)
                     }, 1200);
                 }

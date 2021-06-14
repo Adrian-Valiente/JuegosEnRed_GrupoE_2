@@ -326,16 +326,15 @@ class ElectricidadP2 extends Phaser.Scene {
 
 
             setTimeout(() => {
-                this.scene.stop(this)
+                
                 this.data.escena.escenasActivas[1] = false;
                 this.data.escena.escenarios[3].completadoP2U = true;
                 this.data.escena.PEPD.tint.onChange(0xE74C3C)
                 this.keyLock = true;
                 this.data.escena.blurElectricidadD.alpha = 0;
                 this.data.escena.crearPortalElectricidadP2();
-                if (this.online && this.data.escena.yo.side == 2) {
+                if (this.online && this.data.escena.yo.side == 1) {
                     this.data.escena.onMensajeHandler();
-
                 }
                 this.scene.stop(this)
             }, 500);

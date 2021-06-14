@@ -336,6 +336,9 @@ class ContadorP2 extends Phaser.Scene {
                             that.data.escena.CoP2.destroy();
                             that.data.escena.crearPortalPulsadorP2();
                         }
+
+                        that.data.escena.onMensajeHandler();
+
                         that.scene.stop(that)
                     }, 1200);
 

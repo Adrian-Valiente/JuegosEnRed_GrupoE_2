@@ -5,6 +5,19 @@ class Scene_play_Online extends Phaser.Scene {
         this.escenasActivas = [false, false];
 
         this.escenarios = [];
+        //NUEVO, ARRAY DE PLATAFORMAS
+        this.plataformasGimnasioP1 = [];
+        this.plataformasGimnasioP2 = [];
+        this.plataformasContadorP1 = [];
+        this.plataformasContadorP2 = [];
+        this.plataformasElectricidadP1 = [];
+        this.plataformasElectricidadP2 = [];
+        this.plataformasLaboratorioP1 = [];
+        this.plataformasLaboratorioP2 = [];
+        this.plataformasNieveP1 = [];
+        this.plataformasNieveP2 = [];
+        this.ultimaActualizacionPlataforma = 0;
+
     }
     init(data) {
         this.soundManager = data.soundManager;
@@ -14,9 +27,9 @@ class Scene_play_Online extends Phaser.Scene {
         if (this.online) {
             this.partidaDatos = data.partida;
             this.yo = data.yo
-            this.lobby=this.data.lobby;
+            this.lobby = this.data.lobby;
             //playerPulse
-            var handler = new WebSocket('ws://127.0.0.1:8080/'+this.data.lobby.nombre);
+            var handler = new WebSocket('ws://127.0.0.1:8080/' + this.data.lobby.nombre);
             this.handler = handler;
 
             this.handler.onerror = function (e) {
@@ -27,9 +40,9 @@ class Scene_play_Online extends Phaser.Scene {
             this.handler.onopen = function () {
                 console.log("Estamos conectados al puerto, naaah de locos");
             }
-            
-         
-           
+
+
+
         }
 
     }
@@ -47,7 +60,7 @@ class Scene_play_Online extends Phaser.Scene {
     create() {
 
         this.borrarIntervalos();
-        this.ActivarControles=false;
+        this.ActivarControles = false;
         /*        
            let tamanio=escenas.length;
              let i=0;
@@ -77,9 +90,9 @@ class Scene_play_Online extends Phaser.Scene {
         this.loadingBG = this.add.image(0, 0, "Loading").setOrigin(0, 0).setSize(this.game.canvas.width, this.game.canvas.height);
 
         //Pensar esto un pcoo mejor
-        this.escenarios[0] = new Escenario("Cinta", 4, true);
+        this.escenarios[0] = new Escenario("Cinta", 0, true);
         this.escenarios[1] = new Escenario("Contador", 1, false);
-        this.escenarios[2] = new Escenario("Nieve", 0, false);
+        this.escenarios[2] = new Escenario("Nieve", 4, false);
         this.escenarios[3] = new Escenario("Electricidad", 2, true);
         this.escenarios[4] = new Escenario("Laboratorio", 3, false);
 
@@ -106,6 +119,7 @@ class Scene_play_Online extends Phaser.Scene {
         this.playerU.time = 0;
         this.playerU.setDepth(1000);
         this.playerU.name = this.data.users.p1.user;
+        this.playerU.position = 0;
 
         //Player 2//
 
@@ -118,6 +132,7 @@ class Scene_play_Online extends Phaser.Scene {
         this.playerD.velocidad = 300;
         this.playerD.setDepth(1000);
         this.playerD.name = this.data.users.p2.user;
+        this.playerD.position = 0;
 
         //Cargar sonido
 
@@ -950,7 +965,7 @@ class Scene_play_Online extends Phaser.Scene {
             }
 
 
-        } else if(this.online && this.ActivarControles) {
+        } else if (this.online && this.ActivarControles) {
 
             if (this.yo.side === 1) {
                 if (!this.escenasActivas[0]) {
@@ -961,6 +976,7 @@ class Scene_play_Online extends Phaser.Scene {
                     let touching = true;
                     let t = time % 60;
                     let t2 = time % 80;
+                    
 
 
 
@@ -1062,8 +1078,44 @@ class Scene_play_Online extends Phaser.Scene {
                         this.handler.send(JSON.stringify(msgPos));
                     }
 
+                    if (((t2 >= 0 && t2 <= 5) || (t2 >= 60 && t2 <= 65))) {
+
+
+
+                        let aux = []
+                        let esce = this.playerU.position;
+                        let lenghtArray = this.escenarios[this.playerU.position].plataformasP1.length;
+
+
+
+                        for (let j = 0; j < lenghtArray; j++) {
+
+                            let i = j * 3
+
+                            aux[i] = this.escenarios[this.playerU.position].plataformasP1[j].x
+                            aux[i + 1] = this.escenarios[this.playerU.position].plataformasP1[j].y
+                            aux[i + 2] = this.escenarios[this.playerU.position].plataformasP1[j].body.velocity;
+
+                        }
+
+
+                        let msg = {
+                            tipo: "PLATFORM",
+                            arrayPlatforms: aux,
+                            escenario: esce
+
+                        }
+                        console.log(msg);
+
+                        this.handler.send(JSON.stringify(msg));
+
+                    }
+
 
                 }
+
+
+
 
             } else if (this.yo.side === 2) {
 
@@ -1176,6 +1228,46 @@ class Scene_play_Online extends Phaser.Scene {
                     }
 
 
+
+
+                    if (((t2 >= 5 && t2 <= 10) || (t2 >= 65 && t2 <= 70))) {
+
+
+
+                        let aux = []
+                        let esce = this.playerD.position;
+                        let lenghtArray = this.escenarios[this.playerD.position].plataformasP2.length;
+
+
+
+                        for (let j = 0; j < lenghtArray; j++) {
+
+                            let i = j * 3
+
+                            aux[i] = this.escenarios[this.playerD.position].plataformasP2[j].x
+                            aux[i + 1] = this.escenarios[this.playerD.position].plataformasP2[j].y
+                            aux[i + 2] = this.escenarios[this.playerD.position].plataformasP2[j].body.velocity;
+
+                        }
+
+
+                        let msg = {
+                            tipo: "PLATFORM",
+                            arrayPlatforms: aux,
+                            escenario: esce
+
+                        }
+                        console.log(msg);
+
+                        this.handler.send(JSON.stringify(msg));
+
+                    }
+
+
+
+
+
+
                 }
             }
 
@@ -1285,7 +1377,7 @@ class Scene_play_Online extends Phaser.Scene {
 
 
 
-    teletransporte(player, factor, camara, aux) {
+    teletransporte(player, factor, camara, aux, escenario) {
 
         if (this.keyboardP1.E.isDown === true || aux === true) {
 
@@ -1293,6 +1385,7 @@ class Scene_play_Online extends Phaser.Scene {
             player.body.setVelocityY(0);
             player.anims.stop();
             player.x = (1180 * (factor + 1) + 25);
+            player.position = escenario;
 
 
             player.y = this.game.canvas.height / 2 - 55;
@@ -1312,7 +1405,7 @@ class Scene_play_Online extends Phaser.Scene {
         }
 
     }
-    teletransporteD(player, factor, camara, aux) {
+    teletransporteD(player, factor, camara, aux, escenario) {
         if (this.keyboardP1.E.isDown === true || aux === true) {
 
             player.body.setVelocityX(0);
@@ -1321,6 +1414,7 @@ class Scene_play_Online extends Phaser.Scene {
             player.x = (1180 * (factor + 1) + 25);
             player.y = this.game.canvas.height - 55;
             camara.setBounds(0 + 1180 * (factor + 1), this.game.canvas.height / 2, this.game.canvas.width, this.game.canvas.height / 2)
+            player.position = escenario;
 
             //Sonido
             this.soundManager.play('TeletransporteFinal')
@@ -1352,7 +1446,7 @@ class Scene_play_Online extends Phaser.Scene {
             this.elcronoP2 = setInterval(() => { this.tiempoP2(empP2) }, 10);
             this.playP2 = true;
         }
-        this.ActivarControles=true;
+        this.ActivarControles = true;
 
 
 
@@ -1903,7 +1997,7 @@ class Scene_play_Online extends Phaser.Scene {
         //pos = Math.trunc(pos) - 1
 
 
-        this.physics.add.overlap(this.playerU, this.portal, () => { this.teletransporte(this.playerU, this.escenarios[0].pos, this.cam1) }, this.funcionOverlapP1, this);
+        this.physics.add.overlap(this.playerU, this.portal, () => { this.teletransporte(this.playerU, this.escenarios[0].pos, this.cam1, null, 1) }, this.funcionOverlapP1, this);
 
     }
 
@@ -1916,7 +2010,7 @@ class Scene_play_Online extends Phaser.Scene {
         this.portal.displayWidth = 84; //spritePortal.width x 0.5
         this.portal.alpha = 0;
 
-        this.physics.add.overlap(this.playerU, this.portal, () => { this.teletransporte(this.playerU, this.escenarios[1].pos, this.cam1) }, this.funcionOverlapP1, this);
+        this.physics.add.overlap(this.playerU, this.portal, () => { this.teletransporte(this.playerU, this.escenarios[1].pos, this.cam1, null, 3) }, this.funcionOverlapP1, this);
 
     }
 
@@ -1930,7 +2024,7 @@ class Scene_play_Online extends Phaser.Scene {
         this.portal.displayWidth = 84;
         this.portal.alpha = 0;
 
-        this.physics.add.overlap(this.playerU, this.portal, () => { this.teletransporte(this.playerU, this.escenarios[3].pos, this.cam1) }, this.funcionOverlapP1, this);
+        this.physics.add.overlap(this.playerU, this.portal, () => { this.teletransporte(this.playerU, this.escenarios[3].pos, this.cam1, null, 4) }, this.funcionOverlapP1, this);
 
     }
 
@@ -1947,7 +2041,7 @@ class Scene_play_Online extends Phaser.Scene {
         //pos = Math.trunc(pos) - 1
 
 
-        this.physics.add.overlap(this.playerU, this.portal, () => { this.teletransporte(this.playerU, this.escenarios[4].pos, this.cam1) }, this.funcionOverlapP1, this);
+        this.physics.add.overlap(this.playerU, this.portal, () => { this.teletransporte(this.playerU, this.escenarios[4].pos, this.cam1, null, 2) }, this.funcionOverlapP1, this);
 
     }
 
@@ -1962,7 +2056,7 @@ class Scene_play_Online extends Phaser.Scene {
         this.portalD.displayHeight = 155; //spritePortal.height x 0.5
         this.portalD.displayWidth = 84; //spritePortal.width x 0.5
         this.portalD.alpha = 0;
-        this.physics.add.overlap(this.playerD, this.portalD, () => { this.teletransporteD(this.playerD, this.escenarios[0].pos, this.cam2) }, this.funcionOverlapP2, this); console.log(this.portal)
+        this.physics.add.overlap(this.playerD, this.portalD, () => { this.teletransporteD(this.playerD, this.escenarios[0].pos, this.cam2, null, 1) }, this.funcionOverlapP2, this); console.log(this.portal)
     }
 
 
@@ -1974,7 +2068,7 @@ class Scene_play_Online extends Phaser.Scene {
         this.portalD.displayHeight = 155; //spritePortal.height x 0.5
         this.portalD.displayWidth = 84; //spritePortal.width x 0.5
         this.portalD.alpha = 0;
-        this.physics.add.overlap(this.playerD, this.portalD, () => { this.teletransporteD(this.playerD, this.escenarios[1].pos, this.cam2) }, this.funcionOverlapP2, this); console.log(this.portal);
+        this.physics.add.overlap(this.playerD, this.portalD, () => { this.teletransporteD(this.playerD, this.escenarios[1].pos, this.cam2, null, 3) }, this.funcionOverlapP2, this); console.log(this.portal);
     }
 
 
@@ -1986,7 +2080,7 @@ class Scene_play_Online extends Phaser.Scene {
         this.portalD.displayHeight = 155;
         this.portalD.displayWidth = 84;
         this.portalD.alpha = 0;
-        this.physics.add.overlap(this.playerD, this.portalD, () => { this.teletransporteD(this.playerD, this.escenarios[3].pos, this.cam2) }, this.funcionOverlapP2, this); console.log(this.portal)
+        this.physics.add.overlap(this.playerD, this.portalD, () => { this.teletransporteD(this.playerD, this.escenarios[3].pos, this.cam2, null, 4) }, this.funcionOverlapP2, this); console.log(this.portal)
     }
 
 
@@ -1998,7 +2092,7 @@ class Scene_play_Online extends Phaser.Scene {
         this.portalD.displayHeight = 155; //spritePortal.height x 0.5
         this.portalD.displayWidth = 84; //spritePortal.width x 0.5
         this.portalD.alpha = 0;
-        this.physics.add.overlap(this.playerD, this.portalD, () => { this.teletransporteD(this.playerD, this.escenarios[4].pos, this.cam2) }, this.funcionOverlapP2, this); console.log(this.portal)
+        this.physics.add.overlap(this.playerD, this.portalD, () => { this.teletransporteD(this.playerD, this.escenarios[4].pos, this.cam2, null, 2) }, this.funcionOverlapP2, this); console.log(this.portal)
     }
 
     //plataformas
@@ -2010,19 +2104,12 @@ class Scene_play_Online extends Phaser.Scene {
         p1_1_1.displayHeight = 20;
         p1_1_1.displayWidth = 80;
 
-        let p1_1_2 = this.physics.add.image(220 + 1180 * this.escenarios[0].pos, 260, "gymplatform").setImmovable(true);
+        var p1_1_2 = this.physics.add.image(220 + 1180 * this.escenarios[0].pos, 260, "gymplatform").setImmovable(true);
         p1_1_2.displayHeight = 20;
         p1_1_2.displayWidth = 80;
 
         let p1_1_3 = this.physics.add.image(320 + 1180 * this.escenarios[0].pos, 150, "gymplatform").setImmovable(true);
-        this.tweens.timeline({
-            targets: p1_1_3.body.velocity,
-            loop: -1,
-            tweens: [
-                { y: 80, duration: 750, ease: 'Stepped' },
-                { y: -80, duration: 750, ease: 'Stepped' }
-            ]
-        })
+
 
         let p1_1_4 = this.physics.add.image(200 + 1180 * this.escenarios[0].pos, 120, "gymplatform").setImmovable(true);
         p1_1_4.displayHeight = 20;
@@ -2040,18 +2127,11 @@ class Scene_play_Online extends Phaser.Scene {
         p1_1_7.displayHeight = 20;
         p1_1_7.displayWidth = 80;
 
-        let p1_1_8 = this.physics.add.image(650 + 1180 * this.escenarios[0].pos, 230, "gymplatform").setImmovable(true);
+        var p1_1_8 = this.physics.add.image(650 + 1180 * this.escenarios[0].pos, 230, "gymplatform").setImmovable(true);
         p1_1_8.displayHeight = 20;
         p1_1_8.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p1_1_8.body.velocity,
-            loop: -1,
-            tweens: [
-                { y: -60, duration: 850, ease: 'Stepped' },
-                { y: 60, duration: 850, ease: 'Stepped' }
-            ]
-        })
+
 
         let p1_1_9 = this.physics.add.image(750 + 1180 * this.escenarios[0].pos, 135, "gymplatform").setImmovable(true);
         p1_1_9.displayHeight = 20;
@@ -2061,18 +2141,11 @@ class Scene_play_Online extends Phaser.Scene {
         p1_1_10.displayHeight = 20;
         p1_1_10.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p1_1_10.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -60, duration: 1700, ease: 'Stepped' },
-                { x: 60, duration: 1700, ease: 'Stepped' }
-            ]
-        })
 
         let p1_1_11 = this.physics.add.image(1020 + 1180 * this.escenarios[0].pos, 135, "gymplatform").setImmovable(true);
         p1_1_11.displayHeight = 20;
         p1_1_11.displayWidth = 80;
+
 
 
         let grupoP1_gym = this.add.group();
@@ -2090,6 +2163,55 @@ class Scene_play_Online extends Phaser.Scene {
 
         this.physics.add.collider(this.playerU, grupoP1_gym);
 
+
+        if (this.yo.side === 1) {
+            1
+
+            this.tweens.timeline({
+                targets: p1_1_3.body.velocity,
+                loop: -1,
+                tweens: [
+                    { y: 80, duration: 750, ease: 'Stepped' },
+                    { y: -80, duration: 750, ease: 'Stepped' }
+                ]
+            })
+
+
+            this.tweens.timeline({
+                targets: p1_1_8.body.velocity,
+                loop: -1,
+                tweens: [
+                    { y: -60, duration: 850, ease: 'Stepped' },
+                    { y: 60, duration: 850, ease: 'Stepped' }
+                ]
+            })
+
+
+            this.tweens.timeline({
+                targets: p1_1_10.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -60, duration: 1700, ease: 'Stepped' },
+                    { x: 60, duration: 1700, ease: 'Stepped' }
+                ]
+            })
+
+        }
+
+
+
+        this.plataformasGimnasioP1[0] = p1_1_3;
+        this.plataformasGimnasioP1[1] = p1_1_8;
+        this.plataformasGimnasioP1[2] = p1_1_10;
+
+
+
+        console.log("Plataformas: ", this.plataformas);
+
+
+
+
+
     }
 
     crearPlataformasGimnasioP2() {
@@ -2102,14 +2224,7 @@ class Scene_play_Online extends Phaser.Scene {
         p2_1_2.displayWidth = 80;
 
         let p2_1_3 = this.physics.add.image(320 + 1180 * this.escenarios[0].pos, 510, "gymplatform").setImmovable(true);
-        this.tweens.timeline({
-            targets: p2_1_3.body.velocity,
-            loop: -1,
-            tweens: [
-                { y: 80, duration: 750, ease: 'Stepped' },
-                { y: -80, duration: 750, ease: 'Stepped' }
-            ]
-        })
+
 
         let p2_1_4 = this.physics.add.image(200 + 1180 * this.escenarios[0].pos, 480, "gymplatform").setImmovable(true);
         p2_1_4.displayHeight = 20;
@@ -2131,14 +2246,7 @@ class Scene_play_Online extends Phaser.Scene {
         p2_1_8.displayHeight = 20;
         p2_1_8.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p2_1_8.body.velocity,
-            loop: -1,
-            tweens: [
-                { y: -60, duration: 850, ease: 'Stepped' },
-                { y: 60, duration: 850, ease: 'Stepped' }
-            ]
-        })
+
 
         let p2_1_9 = this.physics.add.image(750 + 1180 * this.escenarios[0].pos, 495, "gymplatform").setImmovable(true);
         p2_1_9.displayHeight = 20;
@@ -2148,14 +2256,7 @@ class Scene_play_Online extends Phaser.Scene {
         p2_1_10.displayHeight = 20;
         p2_1_10.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p2_1_10.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -60, duration: 1700, ease: 'Stepped' },
-                { x: 60, duration: 1700, ease: 'Stepped' }
-            ]
-        })
+
 
         let p2_1_11 = this.physics.add.image(1020 + 1180 * this.escenarios[0].pos, 495, "gymplatform").setImmovable(true);
         p2_1_11.displayHeight = 20;
@@ -2177,6 +2278,44 @@ class Scene_play_Online extends Phaser.Scene {
 
         this.physics.add.collider(this.playerD, grupoP2_gym);
 
+        this.plataformasGimnasioP2[0] = p2_1_3;
+        this.plataformasGimnasioP2[1] = p2_1_8;
+        this.plataformasGimnasioP2[2] = p2_1_10;
+
+        if (this.yo.side === 2) {
+
+            this.tweens.timeline({
+                targets: p2_1_3.body.velocity,
+                loop: -1,
+                tweens: [
+                    { y: 80, duration: 750, ease: 'Stepped' },
+                    { y: -80, duration: 750, ease: 'Stepped' }
+                ]
+            })
+
+            this.tweens.timeline({
+                targets: p2_1_8.body.velocity,
+                loop: -1,
+                tweens: [
+                    { y: -60, duration: 850, ease: 'Stepped' },
+                    { y: 60, duration: 850, ease: 'Stepped' }
+                ]
+            })
+
+
+
+            this.tweens.timeline({
+                targets: p2_1_10.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -60, duration: 1700, ease: 'Stepped' },
+                    { x: 60, duration: 1700, ease: 'Stepped' }
+                ]
+            })
+
+        }
+
+
     }
 
     crearPlataformasContador1() {
@@ -2184,29 +2323,13 @@ class Scene_play_Online extends Phaser.Scene {
         p1_2_1.displayHeight = 20;
         p1_2_1.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p1_2_1.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: 60, duration: 2000, ease: 'Stepped' },
-                { x: -60, duration: 2000, ease: 'Stepped' }
 
-            ]
-        });
 
         let p1_2_2 = this.physics.add.image(275 + 1180 * this.escenarios[1].pos, 220, "contplatform").setImmovable(true);
         p1_2_2.displayHeight = 20;
         p1_2_2.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p1_2_2.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -80, duration: 1300, ease: 'Stepped' },
-                { x: 80, duration: 1300, ease: 'Stepped' }
 
-            ]
-        });
 
         let p1_2_3 = this.physics.add.image(75 + 1180 * this.escenarios[1].pos, 150, "contplatform").setImmovable(true);
         p1_2_3.displayHeight = 20;
@@ -2216,15 +2339,6 @@ class Scene_play_Online extends Phaser.Scene {
         p1_2_4.displayHeight = 20;
         p1_2_4.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p1_2_4.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: 70, duration: 1500, ease: 'Stepped' },
-                { x: -70, duration: 1500, ease: 'Stepped' }
-
-            ]
-        });
 
         let p1_2_5 = this.physics.add.image(390 + 1180 * this.escenarios[1].pos, 100, "contplatform").setImmovable(true);
         p1_2_5.displayHeight = 20;
@@ -2234,15 +2348,7 @@ class Scene_play_Online extends Phaser.Scene {
         p1_2_6.displayHeight = 20;
         p1_2_6.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p1_2_6.body.velocity,
-            loop: -1,
-            tweens: [
-                { y: 40, duration: 2500, ease: 'Stepped' },
-                { y: -40, duration: 2500, ease: 'Stepped' }
 
-            ]
-        });
 
         let p1_2_7 = this.physics.add.image(610 + 1180 * this.escenarios[1].pos, 200, "contplatform").setImmovable(true);
         p1_2_7.displayHeight = 20;
@@ -2286,6 +2392,60 @@ class Scene_play_Online extends Phaser.Scene {
 
         this.physics.add.collider(this.playerU, grupoP1_cont);
 
+
+        this.plataformasContadorP1[0] = p1_2_1;
+        this.plataformasContadorP1[1] = p1_2_2;
+        this.plataformasContadorP1[2] = p1_2_4;
+        this.plataformasContadorP1[3] = p1_2_6;
+
+
+
+        if (this.yo.side === 1) {
+            this.tweens.timeline({
+                targets: p1_2_1.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: 60, duration: 2000, ease: 'Stepped' },
+                    { x: -60, duration: 2000, ease: 'Stepped' }
+
+                ]
+            });
+
+            this.tweens.timeline({
+                targets: p1_2_2.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -80, duration: 1300, ease: 'Stepped' },
+                    { x: 80, duration: 1300, ease: 'Stepped' }
+
+                ]
+            });
+
+            this.tweens.timeline({
+                targets: p1_2_4.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: 70, duration: 1500, ease: 'Stepped' },
+                    { x: -70, duration: 1500, ease: 'Stepped' }
+
+                ]
+            });
+
+
+            this.tweens.timeline({
+                targets: p1_2_6.body.velocity,
+                loop: -1,
+                tweens: [
+                    { y: 40, duration: 2500, ease: 'Stepped' },
+                    { y: -40, duration: 2500, ease: 'Stepped' }
+
+                ]
+            });
+
+        }
+
+
+
     }
     crearPlataformasContador2() {
         let p2_2_1 = this.physics.add.image(100 + 1180 * this.escenarios[1].pos, this.game.canvas.height * 0.42 + 360, "contplatform").setImmovable(true);
@@ -2293,30 +2453,13 @@ class Scene_play_Online extends Phaser.Scene {
         p2_2_1.displayWidth = 80;
 
 
-        this.tweens.timeline({
-            targets: p2_2_1.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: 60, duration: 2000, ease: 'Stepped' },
-                { x: -60, duration: 2000, ease: 'Stepped' }
-
-            ]
-        });
 
         let p2_2_2 = this.physics.add.image(275 + 1180 * this.escenarios[1].pos, 580, "contplatform").setImmovable(true);
         p2_2_2.displayHeight = 20;
         p2_2_2.displayWidth = 80;
 
 
-        this.tweens.timeline({
-            targets: p2_2_2.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -80, duration: 1200, ease: 'Stepped' },
-                { x: 80, duration: 1200, ease: 'Stepped' }
 
-            ]
-        });
 
         let p2_2_3 = this.physics.add.image(75 + 1180 * this.escenarios[1].pos, 510, "contplatform").setImmovable(true);
         p2_2_3.displayHeight = 20;
@@ -2326,15 +2469,7 @@ class Scene_play_Online extends Phaser.Scene {
         p2_2_4.displayHeight = 20;
         p2_2_4.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p2_2_4.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: 70, duration: 1500, ease: 'Stepped' },
-                { x: -70, duration: 1500, ease: 'Stepped' }
 
-            ]
-        });
 
         let p2_2_5 = this.physics.add.image(390 + 1180 * this.escenarios[1].pos, 460, "contplatform").setImmovable(true);
         p2_2_5.displayHeight = 20;
@@ -2344,15 +2479,6 @@ class Scene_play_Online extends Phaser.Scene {
         p2_2_6.displayHeight = 20;
         p2_2_6.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p2_2_6.body.velocity,
-            loop: -1,
-            tweens: [
-                { y: 40, duration: 2500, ease: 'Stepped' },
-                { y: -40, duration: 2500, ease: 'Stepped' }
-
-            ]
-        });
 
         let p2_2_7 = this.physics.add.image(610 + 1180 * this.escenarios[1].pos, 560, "contplatform").setImmovable(true);
         p2_2_7.displayHeight = 20;
@@ -2403,6 +2529,59 @@ class Scene_play_Online extends Phaser.Scene {
 
         this.physics.add.collider(this.playerD, grupoP2_cont);
 
+        this.plataformasContadorP2[0] = p2_2_1;
+        this.plataformasContadorP2[1] = p2_2_2;
+        this.plataformasContadorP2[2] = p2_2_4;
+        this.plataformasContadorP2[3] = p2_2_6;
+
+        if (this.yo.side === 2) {
+
+            this.tweens.timeline({
+                targets: p2_2_1.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: 60, duration: 2000, ease: 'Stepped' },
+                    { x: -60, duration: 2000, ease: 'Stepped' }
+
+                ]
+            });
+
+            this.tweens.timeline({
+                targets: p2_2_2.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -80, duration: 1200, ease: 'Stepped' },
+                    { x: 80, duration: 1200, ease: 'Stepped' }
+
+                ]
+            });
+
+            this.tweens.timeline({
+                targets: p2_2_4.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: 70, duration: 1500, ease: 'Stepped' },
+                    { x: -70, duration: 1500, ease: 'Stepped' }
+
+                ]
+            });
+
+
+
+            this.tweens.timeline({
+                targets: p2_2_6.body.velocity,
+                loop: -1,
+                tweens: [
+                    { y: 40, duration: 2500, ease: 'Stepped' },
+                    { y: -40, duration: 2500, ease: 'Stepped' }
+
+                ]
+            });
+
+
+        }
+
+
 
     }
 
@@ -2417,29 +2596,13 @@ class Scene_play_Online extends Phaser.Scene {
         p1_3_2.displayHeight = 20;
         p1_3_2.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p1_3_2.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -30, y: 30, duration: 2200, ease: 'Stepped' },
-                { x: 30, y: -30, duration: 2200, ease: 'Stepped' }
 
-            ]
-        });
 
         let p1_3_3 = this.physics.add.image(190 + 1180 * this.escenarios[3].pos, 180, "elecplatform").setImmovable(true);
         p1_3_3.displayHeight = 20;
         p1_3_3.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p1_3_3.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -30, y: -30, duration: 2200, ease: 'Stepped' },
-                { x: 30, y: 30, duration: 2200, ease: 'Stepped' }
 
-            ]
-        });
 
         let p1_3_4 = this.physics.add.image(40 + 1180 * this.escenarios[3].pos, 115, "elecplatform").setImmovable(true);
         p1_3_4.displayHeight = 20;
@@ -2451,23 +2614,7 @@ class Scene_play_Online extends Phaser.Scene {
         p1_3_5.displayHeight = 20;
         p1_3_5.displayWidth = 80;
 
-        this.tweens.timeline({
 
-            targets: p1_3_5.body.velocity,
-            loop: -1,
-            duration: 1000,
-
-            tweens: [
-                { x: { value: -100, ease: 'Sine.easeOut' }, y: { value: 0, ease: 'Sine.easeIn' } },
-                { x: { value: 0, ease: 'Sine.easeIn' }, y: { value: -100, ease: 'Sine.easeOut' } },
-                { x: { value: 100, ease: 'Sine.easeOut' }, y: { value: 0, ease: 'Sine.easeIn' } },
-                { x: { value: 0, ease: 'Sine.easeIn' }, y: { value: 100, ease: 'Sine.easeOut' } },
-
-            ],
-            onLoop: function () {
-                p1_3_5.body.reset(500 + 1180 * that_.escenarios[3].pos, 200);
-            }
-        });
 
         let p1_3_6 = this.physics.add.image(600 + 1180 * this.escenarios[3].pos, 150, "elecplatform").setImmovable(true);
         p1_3_6.displayHeight = 20;
@@ -2498,6 +2645,58 @@ class Scene_play_Online extends Phaser.Scene {
 
         //Colisión plataformas electricidad
         this.physics.add.collider(this.playerU, grupoP1_elec);
+
+        this.plataformasElectricidadP1[0] = p1_3_2;
+        this.plataformasElectricidadP1[1] = p1_3_3;
+        this.plataformasElectricidadP1[2] = p1_3_5;
+
+
+
+        if (this.yo.side === 1) {
+            this.tweens.timeline({
+                targets: p1_3_2.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -30, y: 30, duration: 2200, ease: 'Stepped' },
+                    { x: 30, y: -30, duration: 2200, ease: 'Stepped' }
+
+                ]
+            });
+
+            this.tweens.timeline({
+                targets: p1_3_3.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -30, y: -30, duration: 2200, ease: 'Stepped' },
+                    { x: 30, y: 30, duration: 2200, ease: 'Stepped' }
+
+                ]
+            });
+
+
+            this.tweens.timeline({
+
+                targets: p1_3_5.body.velocity,
+                loop: -1,
+                duration: 1000,
+
+                tweens: [
+                    { x: { value: -100, ease: 'Sine.easeOut' }, y: { value: 0, ease: 'Sine.easeIn' } },
+                    { x: { value: 0, ease: 'Sine.easeIn' }, y: { value: -100, ease: 'Sine.easeOut' } },
+                    { x: { value: 100, ease: 'Sine.easeOut' }, y: { value: 0, ease: 'Sine.easeIn' } },
+                    { x: { value: 0, ease: 'Sine.easeIn' }, y: { value: 100, ease: 'Sine.easeOut' } },
+
+                ],
+                onLoop: function () {
+                    p1_3_5.body.reset(500 + 1180 * that_.escenarios[3].pos, 200);
+                }
+            });
+
+
+        }
+
+
+
     }
 
     crearPlataformasElectricidad2(that) {
@@ -2513,29 +2712,12 @@ class Scene_play_Online extends Phaser.Scene {
         p2_3_2.displayHeight = 20;
         p2_3_2.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p2_3_2.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -30, y: 30, duration: 2200, ease: 'Stepped' },
-                { x: 30, y: -30, duration: 2200, ease: 'Stepped' }
-
-            ]
-        });
 
         let p2_3_3 = this.physics.add.image(190 + 1180 * this.escenarios[3].pos, 540, "elecplatform").setImmovable(true);
         p2_3_3.displayHeight = 20;
         p2_3_3.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p2_3_3.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -30, y: -30, duration: 2200, ease: 'Stepped' },
-                { x: 30, y: 30, duration: 2200, ease: 'Stepped' }
 
-            ]
-        });
 
         let p2_3_4 = this.physics.add.image(40 + 1180 * this.escenarios[3].pos, 475, "elecplatform").setImmovable(true);
         p2_3_4.displayHeight = 20;
@@ -2547,24 +2729,7 @@ class Scene_play_Online extends Phaser.Scene {
         p2_3_5.displayHeight = 20;
         p2_3_5.displayWidth = 80;
 
-        this.tweens.timeline({
 
-            targets: p2_3_5.body.velocity,
-            loop: -1,
-            duration: 1000,
-
-            tweens: [
-                { x: { value: -100, ease: 'Sine.easeOut' }, y: { value: 0, ease: 'Sine.easeIn' } },
-                { x: { value: 0, ease: 'Sine.easeIn' }, y: { value: -100, ease: 'Sine.easeOut' } },
-                { x: { value: 100, ease: 'Sine.easeOut' }, y: { value: 0, ease: 'Sine.easeIn' } },
-                { x: { value: 0, ease: 'Sine.easeIn' }, y: { value: 100, ease: 'Sine.easeOut' } },
-
-            ],
-            onLoop: function () {
-                //p1_3_5.body.reset(500,115);
-                p2_3_5.body.reset(500 + 1180 * that_.escenarios[3].pos, 560);
-            }
-        });
 
         let p2_3_6 = this.physics.add.image(600 + 1180 * this.escenarios[3].pos, 510, "elecplatform").setImmovable(true);
         p2_3_6.displayHeight = 20;
@@ -2595,6 +2760,56 @@ class Scene_play_Online extends Phaser.Scene {
 
         //Colisión plataformas electricidad
         this.physics.add.collider(this.playerD, grupoP2_elec);
+
+        this.plataformasElectricidadP2[0] = p2_3_2;
+        this.plataformasElectricidadP2[1] = p2_3_3;
+        this.plataformasElectricidadP2[2] = p2_3_5;
+
+        if (this.yo.side === 2) {
+
+            this.tweens.timeline({
+                targets: p2_3_2.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -30, y: 30, duration: 2200, ease: 'Stepped' },
+                    { x: 30, y: -30, duration: 2200, ease: 'Stepped' }
+
+                ]
+            });
+            this.tweens.timeline({
+                targets: p2_3_3.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -30, y: -30, duration: 2200, ease: 'Stepped' },
+                    { x: 30, y: 30, duration: 2200, ease: 'Stepped' }
+
+                ]
+            });
+            this.tweens.timeline({
+
+                targets: p2_3_5.body.velocity,
+                loop: -1,
+                duration: 1000,
+
+                tweens: [
+                    { x: { value: -100, ease: 'Sine.easeOut' }, y: { value: 0, ease: 'Sine.easeIn' } },
+                    { x: { value: 0, ease: 'Sine.easeIn' }, y: { value: -100, ease: 'Sine.easeOut' } },
+                    { x: { value: 100, ease: 'Sine.easeOut' }, y: { value: 0, ease: 'Sine.easeIn' } },
+                    { x: { value: 0, ease: 'Sine.easeIn' }, y: { value: 100, ease: 'Sine.easeOut' } },
+
+                ],
+                onLoop: function () {
+                    //p1_3_5.body.reset(500,115);
+                    p2_3_5.body.reset(500 + 1180 * that_.escenarios[3].pos, 560);
+                }
+            });
+
+        }
+
+
+
+
+
     }
 
     crearPlataformasLaboratorio1() {
@@ -2602,15 +2817,7 @@ class Scene_play_Online extends Phaser.Scene {
         p1_4_1.displayHeight = 20;
         p1_4_1.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p1_4_1.body.velocity,
-            loop: -1,
-            tweens: [
-                { y: -40, duration: 3500, ease: 'Stepped' },
-                { y: 40, duration: 3500, ease: 'Stepped' }
 
-            ]
-        });
 
         let p1_4_2 = this.physics.add.image(745 + 1180 * this.escenarios[4].pos, 315, "labplatform").setImmovable(true);
         p1_4_2.displayHeight = 20;
@@ -2631,6 +2838,22 @@ class Scene_play_Online extends Phaser.Scene {
         grupoP1_Lab.add(p1_4_4);
 
         this.physics.add.collider(this.playerU, grupoP1_Lab);
+
+
+        this.plataformasLaboratorioP1[0] = p1_4_1;
+
+        if (this.yo.side === 1) {
+            this.tweens.timeline({
+                targets: p1_4_1.body.velocity,
+                loop: -1,
+                tweens: [
+                    { y: -40, duration: 3500, ease: 'Stepped' },
+                    { y: 40, duration: 3500, ease: 'Stepped' }
+
+                ]
+            });
+        }
+
     }
 
     crearPlataformasLaboratorio2() {
@@ -2638,15 +2861,7 @@ class Scene_play_Online extends Phaser.Scene {
         p2_4_1.displayHeight = 20;
         p2_4_1.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p2_4_1.body.velocity,
-            loop: -1,
-            tweens: [
-                { y: -40, duration: 3500, ease: 'Stepped' },
-                { y: 40, duration: 3500, ease: 'Stepped' }
 
-            ]
-        });
 
         let p2_4_2 = this.physics.add.image(745 + 1180 * this.escenarios[4].pos, 675, "labplatform").setImmovable(true);
         p2_4_2.displayHeight = 20;
@@ -2668,6 +2883,22 @@ class Scene_play_Online extends Phaser.Scene {
 
 
         this.physics.add.collider(this.playerD, grupoP2_Lab);
+
+        this.plataformasLaboratorioP2[0] = p2_4_1;
+
+
+        if (this.yo.side === 2) {
+            this.tweens.timeline({
+                targets: p2_4_1.body.velocity,
+                loop: -1,
+                tweens: [
+                    { y: -40, duration: 3500, ease: 'Stepped' },
+                    { y: 40, duration: 3500, ease: 'Stepped' }
+
+                ]
+            });
+        }
+
     }
 
     crearPlataformasNieve1() {
@@ -2677,15 +2908,7 @@ class Scene_play_Online extends Phaser.Scene {
         p1_5_1.body.friction.x = 0.3;
 
 
-        this.tweens.timeline({
-            targets: p1_5_1.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: 60, duration: 1000, ease: 'Stepped' },
-                { x: -60, duration: 1000, ease: 'Stepped' }
 
-            ]
-        });
 
         let p1_5_2 = this.physics.add.image(300 + 1180 * this.escenarios[2].pos, 225, "snowplat").setImmovable(true);
         p1_5_2.displayHeight = 20;
@@ -2697,15 +2920,7 @@ class Scene_play_Online extends Phaser.Scene {
         p1_5_3.displayWidth = 80;
         p1_5_3.body.friction.x = 0.3;
 
-        this.tweens.timeline({
-            targets: p1_5_3.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -70, duration: 1500, ease: 'Stepped' },
-                { x: 70, duration: 1500, ease: 'Stepped' }
 
-            ]
-        });
 
         let p1_5_4 = this.physics.add.image(595 + 1180 * this.escenarios[2].pos, 185, "snowplat").setImmovable(true);
         p1_5_4.displayHeight = 20;
@@ -2716,15 +2931,7 @@ class Scene_play_Online extends Phaser.Scene {
         p1_5_5.displayWidth = 80;
         p1_5_5.body.friction.x = 0.2;
 
-        this.tweens.timeline({
-            targets: p1_5_5.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -95, duration: 2500, ease: 'Stepped' },
-                { x: 95, duration: 2500, ease: 'Stepped' }
 
-            ]
-        });
 
 
         let grupoP1_snow = this.add.group();
@@ -2735,6 +2942,47 @@ class Scene_play_Online extends Phaser.Scene {
         grupoP1_snow.add(p1_5_5);
 
         this.physics.add.collider(this.playerU, grupoP1_snow);
+
+
+        this.plataformasNieveP1[0] = p1_5_1;
+        this.plataformasNieveP1[1] = p1_5_3;
+        this.plataformasNieveP1[2] = p1_5_5;
+
+
+        if (this.yo.side === 1) {
+            this.tweens.timeline({
+                targets: p1_5_1.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: 60, duration: 1000, ease: 'Stepped' },
+                    { x: -60, duration: 1000, ease: 'Stepped' }
+
+                ]
+            });
+
+            this.tweens.timeline({
+                targets: p1_5_3.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -70, duration: 1500, ease: 'Stepped' },
+                    { x: 70, duration: 1500, ease: 'Stepped' }
+
+                ]
+            });
+
+            this.tweens.timeline({
+                targets: p1_5_5.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -95, duration: 2500, ease: 'Stepped' },
+                    { x: 95, duration: 2500, ease: 'Stepped' }
+
+                ]
+            });
+        }
+
+
+
     }
 
     crearPlataformasNieve2() {
@@ -2744,15 +2992,7 @@ class Scene_play_Online extends Phaser.Scene {
         p2_5_1.body.friction.x = 0.3;
 
 
-        this.tweens.timeline({
-            targets: p2_5_1.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: 60, duration: 1000, ease: 'Stepped' },
-                { x: -60, duration: 1000, ease: 'Stepped' }
 
-            ]
-        });
 
         let p2_5_2 = this.physics.add.image(300 + 1180 * this.escenarios[2].pos, 585, "snowplat").setImmovable(true);
         p2_5_2.displayHeight = 20;
@@ -2764,15 +3004,6 @@ class Scene_play_Online extends Phaser.Scene {
         p2_5_3.displayWidth = 80;
         p2_5_3.body.friction.x = 0.3;
 
-        this.tweens.timeline({
-            targets: p2_5_3.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -70, duration: 1500, ease: 'Stepped' },
-                { x: 70, duration: 1500, ease: 'Stepped' }
-
-            ]
-        });
 
         let p2_5_4 = this.physics.add.image(595 + 1180 * this.escenarios[2].pos, 545, "snowplat").setImmovable(true);
         p2_5_4.displayHeight = 20;
@@ -2783,15 +3014,6 @@ class Scene_play_Online extends Phaser.Scene {
         p2_5_5.displayWidth = 80;
         p2_5_5.body.friction.x = 0.2;
 
-        this.tweens.timeline({
-            targets: p2_5_5.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -95, duration: 2500, ease: 'Stepped' },
-                { x: 95, duration: 2500, ease: 'Stepped' }
-
-            ]
-        });
 
 
         let grupoP2_snow = this.add.group();
@@ -2802,11 +3024,50 @@ class Scene_play_Online extends Phaser.Scene {
         grupoP2_snow.add(p2_5_5);
 
         this.physics.add.collider(this.playerD, grupoP2_snow);
+
+
+        this.plataformasNieveP2[0] = p2_5_1;
+        this.plataformasNieveP2[1] = p2_5_3;
+        this.plataformasNieveP2[2] = p2_5_5;
+
+        if (this.yo.side === 2) {
+            this.tweens.timeline({
+                targets: p2_5_1.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: 60, duration: 1000, ease: 'Stepped' },
+                    { x: -60, duration: 1000, ease: 'Stepped' }
+
+                ]
+            });
+
+            this.tweens.timeline({
+                targets: p2_5_3.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -70, duration: 1500, ease: 'Stepped' },
+                    { x: 70, duration: 1500, ease: 'Stepped' }
+
+                ]
+            });
+
+
+            this.tweens.timeline({
+                targets: p2_5_5.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -95, duration: 2500, ease: 'Stepped' },
+                    { x: 95, duration: 2500, ease: 'Stepped' }
+
+                ]
+            });
+
+
+        }
+
+
+
     }
-
-
-
-
 
 
 
@@ -2856,25 +3117,25 @@ class Scene_play_Online extends Phaser.Scene {
         this.end.player1 = true;
 
 
-            if (this.end.player1 === true && this.end.player2 === true) {
-                this.borrarIntervalos();
-                if(this.online){
-                    this.handler.close();
-                }
-                this.scene.start("Victoria", {
-                    escena: null,
-                    soundManager: this.soundManager,
-                    ganador: 2,
-                    nameP1: this.playerU.name,
-                    nameP2: this.playerD.name,
-                    tiempoP1: this.tiempoFinalP1,
-                    tiempoP2: this.tiempoFinalP2,
-                    online: this.online,
-                    yo:this.yo,
-                    lobby:this.lobby,
-                    
-                });
+        if (this.end.player1 === true && this.end.player2 === true) {
+            this.borrarIntervalos();
+            if (this.online) {
+                this.handler.close();
             }
+            this.scene.start("Victoria", {
+                escena: null,
+                soundManager: this.soundManager,
+                ganador: 2,
+                nameP1: this.playerU.name,
+                nameP2: this.playerD.name,
+                tiempoP1: this.tiempoFinalP1,
+                tiempoP2: this.tiempoFinalP2,
+                online: this.online,
+                yo: this.yo,
+                lobby: this.lobby,
+
+            });
+        }
         bandera.destroy();
         this.BP1.destroy();
     }
@@ -2883,24 +3144,24 @@ class Scene_play_Online extends Phaser.Scene {
         console.log("bandera p2")
         this.pararP2();
         this.end.player2 = true;
-            if (this.end.player1 === true && this.end.player2 === true) {
-                this.borrarIntervalos();
-                if(this.online){
-                    this.handler.close();
-                }
-                this.scene.start("Victoria", {
-                    escena: null,
-                    soundManager: this.soundManager,
-                    ganador: 1,
-                    nameP1: this.playerU.name,
-                    nameP2: this.playerD.name,
-                    tiempoP1: this.tiempoFinalP1,
-                    tiempoP2: this.tiempoFinalP2,
-                    online: this.online,
-                    yo:this.yo,
-                    lobby:this.lobby
-                });
+        if (this.end.player1 === true && this.end.player2 === true) {
+            this.borrarIntervalos();
+            if (this.online) {
+                this.handler.close();
             }
+            this.scene.start("Victoria", {
+                escena: null,
+                soundManager: this.soundManager,
+                ganador: 1,
+                nameP1: this.playerU.name,
+                nameP2: this.playerD.name,
+                tiempoP1: this.tiempoFinalP1,
+                tiempoP2: this.tiempoFinalP2,
+                online: this.online,
+                yo: this.yo,
+                lobby: this.lobby
+            });
+        }
         bandera.destroy();
         this.BP2.destroy();
     }
@@ -3338,12 +3599,75 @@ class Scene_play_Online extends Phaser.Scene {
     }
 
 
+    adjustplatforms(message) {
+        var that = this;
+        if (this.yo.side === 2) {
+            let plataformas = message.arrayPlatforms;
+            let escenario = message.escenario;
+            let tam = this.escenarios[escenario].plataformasP1.length;
+            // console.log("Plataformas ", plataformas)
+            // console.log("Escenario ", escenario)
+            // console.log("tam ", tam)
+            // console.log("Actualizando plataformas de p1 en P2")
+            if (this.ultimaActualizacionPlataforma !== escenario) {
+                console.log("Cambio de escenario!!!!!!! ");
+                let tama = this.escenarios[this.ultimaActualizacionPlataforma].plataformasP1.length;
+                for (let i = 0; i < tama; i++) {
+
+                    this.escenarios[this.ultimaActualizacionPlataforma].plataformasP1[i].x = 0;
+                    this.escenarios[this.ultimaActualizacionPlataforma].plataformasP1[i].y = 0;
+                    this.escenarios[this.ultimaActualizacionPlataforma].plataformasP1[i].body.velocity.x = 0;
+                    this.escenarios[this.ultimaActualizacionPlataforma].plataformasP1[i].body.velocity.y = 0;
+                }
+
+                this.ultimaActualizacionPlataforma = escenario;
+            }
+            for (let i = 0; i < tam; i++) {
+                let j = i * 3;
+                this.escenarios[escenario].plataformasP1[i].x = plataformas[j];
+                this.escenarios[escenario].plataformasP1[i].y = plataformas[j + 1];
+                this.escenarios[escenario].plataformasP1[i].body.velocity.x = plataformas[j + 2].x;
+                this.escenarios[escenario].plataformasP1[i].body.velocity.y = plataformas[j + 2].y;
+            }
+        }else{
+            let plataformas = message.arrayPlatforms;
+            let escenario = message.escenario;
+            let tam = this.escenarios[escenario].plataformasP1.length;
+            if (this.ultimaActualizacionPlataforma !== escenario) {
+                console.log("Cambio de escenario!!!!!!! ");
+                let tama = this.escenarios[this.ultimaActualizacionPlataforma].plataformasP1.length;
+                for (let i = 0; i < tama; i++) {
+
+                    this.escenarios[this.ultimaActualizacionPlataforma].plataformasP2[i].x = 0;
+                    this.escenarios[this.ultimaActualizacionPlataforma].plataformasP2[i].y = 0;
+                    this.escenarios[this.ultimaActualizacionPlataforma].plataformasP2[i].body.velocity.x = 0;
+                    this.escenarios[this.ultimaActualizacionPlataforma].plataformasP2[i].body.velocity.y = 0;
+                }
+
+                this.ultimaActualizacionPlataforma = escenario;
+            }
+            for (let i = 0; i < tam; i++) {
+                let j = i * 3;
+                this.escenarios[escenario].plataformasP2[i].x = plataformas[j];
+                this.escenarios[escenario].plataformasP2[i].y = plataformas[j + 1];
+                this.escenarios[escenario].plataformasP2[i].body.velocity.x = plataformas[j + 2].x;
+                this.escenarios[escenario].plataformasP2[i].body.velocity.y = plataformas[j + 2].y;
+            }
+        }
+
+
+    }
+
+
+
     onMensajeHandler() {
         var that = this;
         this.handler.onmessage = function (msg) {
             var message = JSON.parse(msg.data)
-            if (message.tipo != "POSICION" && message.tipo != "EVENTOS" && message.tipo != "BOTONES")
-                console.log("message, " + message.tipo, message);
+            if (message.tipo != "POSICION" && message.tipo != "EVENTOS" && message.tipo != "BOTONES") {
+                //console.log("message, AAAAAAA " + message.tipo, message);
+            }
+
 
             if (message.tipo === "POSICION") {
                 that.PlayerPositionMnj(message);
@@ -3352,19 +3676,35 @@ class Scene_play_Online extends Phaser.Scene {
             } else if (message.tipo === "EVENTOS") {
                 that.gameEventMnj(message);
             } else if (message.tipo === "CREAR") {
+                that.crearPlataformasGimnasioP1();
+                that.crearPlataformasGimnasioP2();
                 that.crearPlataformasContador1();
                 that.crearPlataformasContador2();
                 that.crearPlataformasElectricidad1();
                 that.crearPlataformasElectricidad2();
-                that.crearPlataformasGimnasioP1();
-                that.crearPlataformasGimnasioP2();
                 that.crearPlataformasLaboratorio1();
                 that.crearPlataformasLaboratorio2();
                 that.crearPlataformasNieve1();
                 that.crearPlataformasNieve2();
 
+                that.escenarios[0].plataformasP1 = that.plataformasGimnasioP1;
+                that.escenarios[0].plataformasP2 = that.plataformasGimnasioP2;
+                that.escenarios[1].plataformasP1 = that.plataformasContadorP1;
+                that.escenarios[1].plataformasP2 = that.plataformasContadorP2;
+                that.escenarios[2].plataformasP1 = that.plataformasNieveP1;
+                that.escenarios[2].plataformasP2 = that.plataformasNieveP2;
+                that.escenarios[3].plataformasP1 = that.plataformasElectricidadP1;
+                that.escenarios[3].plataformasP2 = that.plataformasElectricidadP2;
+                that.escenarios[4].plataformasP1 = that.plataformasLaboratorioP1;
+                that.escenarios[4].plataformasP2 = that.plataformasLaboratorioP2;
+
+
+
                 that.empezar();
                 that.loadingBG.destroy();
+            } else if (message.tipo = "PLATFORM") {
+                //console.log("LO QUE ME LLEGÓ", message);
+                that.adjustplatforms(message);
             }
 
         }
