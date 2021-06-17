@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fjalla+One&family=Oswald&display=swap" rel="stylesheet">
+    <style>
+        p {
+            font-size: 25px;
+            padding: 20px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            font-family: 'Oswald', sans-serif;
+            font-weight: bold;
+            text-align: left;
+            background-image: url("./assets/BaseBoton.png");
+            background-repeat: no-repeat;
+            background-position: left;
+            background-size: cover;
+        }
+
+        .sHistorial {
+            width: 600px;
+            height: 400px;
+            background: #ffffff00;
+            overflow: hidden;
+            overflow-y: scroll;
+            position: static;
+            scrollbar-color: rgb(255, 60, 0) rgba(0, 0, 0, 0);
+            scrollbar-width: thin;
+            scrollbar-highlight-color: rgb(141, 44, 15);
+        }
+
+        /* width */
+        .sHistorial::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        /* Track */
+        .sHistorial::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        /* Handle */
+        .sHistorial::-webkit-scrollbar-thumb {
+            background: rgb(255, 60, 0);
+        }
+
+        /* Handle on hover */
+        .sHistorial::-webkit-scrollbar-thumb:hover {
+            background: rgb(141, 44, 15);
+        }
+    </style>
+
+
+</head>
+
+<body>
+
+
+    <div id='historial' class="sHistorial">
+        <p>El servidor no esta disponible</p>
+    </div>
+
+
+
+</body>
+
+</html>
