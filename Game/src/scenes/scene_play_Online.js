@@ -17,6 +17,7 @@ class Scene_play_Online extends Phaser.Scene {
         this.plataformasNieveP1 = [];
         this.plataformasNieveP2 = [];
         this.ultimaActualizacionPlataforma = 0;
+        this.ActivarPausa=true;
 
     }
     init(data) {
@@ -976,7 +977,7 @@ class Scene_play_Online extends Phaser.Scene {
                     let touching = true;
                     let t = time % 60;
                     let t2 = time % 80;
-                    
+
 
 
 
@@ -1105,7 +1106,7 @@ class Scene_play_Online extends Phaser.Scene {
                             escenario: esce
 
                         }
-                        console.log(msg);
+                        // console.log(msg);
 
                         this.handler.send(JSON.stringify(msg));
 
@@ -1230,7 +1231,7 @@ class Scene_play_Online extends Phaser.Scene {
 
 
 
-                    if (((t2 >= 5 && t2 <= 10) || (t2 >= 65 && t2 <= 70))) {
+                    if (((t2 >= 5 && t2 <= 10)  || (t2 >= 65 && t2 <= 70))) {
 
 
 
@@ -1257,7 +1258,7 @@ class Scene_play_Online extends Phaser.Scene {
                             escenario: esce
 
                         }
-                        console.log(msg);
+                        // console.log(msg);
 
                         this.handler.send(JSON.stringify(msg));
 
@@ -1280,12 +1281,11 @@ class Scene_play_Online extends Phaser.Scene {
             console.log("Iniciando pausa")
             this.keyLockP2 = true;
             this.keyboardP2.ESC.isDown = false;
-            this.pararP1();
-            this.pararP2();
-            if (this.online) {
+            // this.pararP1();
+            // this.pararP2();
+            if (this.online&& this.ActivarPausa) {
+                this.ActivarPausa=false;
                 this.scene.launch("Pause", { escena: this, soundManager: this.soundManager, online: this.online, yo: this.yo, partida: this.partidaDatos })
-            } else {
-                this.scene.launch("Pause", { escena: this, soundManager: this.soundManager })
             }
 
             //this.keyboardP2.ESC.isDown=true;
@@ -1433,7 +1433,7 @@ class Scene_play_Online extends Phaser.Scene {
     }
 
 
-    //Funciones Cronometro
+    //#region  funciones Crono
 
     empezar() {
         if (this.playP1 === false) {
@@ -1612,11 +1612,11 @@ class Scene_play_Online extends Phaser.Scene {
         }
     }
 
+    //#endregion
 
 
 
-
-    //POWER UPS
+    //#region powerUps
 
 
     crearSpeedUpP1(x, y, pos) {
@@ -1980,8 +1980,10 @@ class Scene_play_Online extends Phaser.Scene {
         }
     }
 
+    //#endregion
 
-    //PORTALES
+
+    //#region  Portales
 
 
     crearPortalGimnasioP1() {
@@ -2095,9 +2097,10 @@ class Scene_play_Online extends Phaser.Scene {
         this.physics.add.overlap(this.playerD, this.portalD, () => { this.teletransporteD(this.playerD, this.escenarios[4].pos, this.cam2, null, 2) }, this.funcionOverlapP2, this); console.log(this.portal)
     }
 
-    //plataformas
+    //#endregion
 
 
+    //#region plataformas
 
     crearPlataformasGimnasioP1() {
         let p1_1_1 = this.physics.add.image(100 + 1180 * this.escenarios[0].pos, this.game.canvas.height * 0.42, "gymplatform").setImmovable(true);
@@ -3070,6 +3073,8 @@ class Scene_play_Online extends Phaser.Scene {
     }
 
 
+    //#endregion
+
 
 
     unlockP1() {
@@ -3245,6 +3250,9 @@ class Scene_play_Online extends Phaser.Scene {
             //Si el servidor no está disponible, borramos todos los intervalos de tiempo establecidos
             this.borrarIntervalos();
             alert("Los servidores no se encuentran disponibles, volviendo al menú principal");
+            this.online = false;
+            if (this.handler.readyState === 1)
+                this.handler.close();
             //borramos el nombre, el estado, los ids y las posiciones del JSON, y devolvemos al jugador al menú principal
             this.yo.user = "";
             this.yo.status = "";
@@ -3276,6 +3284,10 @@ class Scene_play_Online extends Phaser.Scene {
             this.borrarIntervalos();
             alert("Los servidores no se encuentran disponibles, volviendo al menú principal");
             //borramos el nombre, el estado, los ids y las posiciones del JSON, y devolvemos al jugador al menú principal
+            // ? Desconectamos del socket
+            this.online = false;
+            if (this.handler.readyState === 1)
+                this.handler.close();
             this.yo.user = "";
             this.yo.status = "";
             this.yo.id = 0;
@@ -3288,6 +3300,21 @@ class Scene_play_Online extends Phaser.Scene {
 
         if (players[0].status === "" || players[0].status === "disconected" || players[0].status === null) {
             this.borrarIntervalos();
+
+            // let player;
+            // player.user = this.yo.user ;
+            // player.status = this.yo.status ;
+            // player.id = this.yo.id ;
+            // player.side = this.yo.side ;
+
+
+            //! Se ha caido un jugador
+
+            // ? Desconectamos del socket
+            this.online = false;
+            if (this.handler.readyState === 1)
+                this.handler.close();
+
 
             this.yo.user = "";
             this.yo.status = "";
@@ -3306,6 +3333,13 @@ class Scene_play_Online extends Phaser.Scene {
         if (players[1].status === "" || players[1].status === "disconected" || players[1].status === null) {
             this.borrarIntervalos();
 
+
+            // ? Desconectamos del socket
+            this.online = false;
+            if (this.handler.readyState === 1)
+                this.handler.close();
+
+
             this.yo.user = "";
             this.yo.status = "";
             this.yo.id = 0;
@@ -3321,6 +3355,8 @@ class Scene_play_Online extends Phaser.Scene {
             return
         }
 
+
+        //! esto en teoria ya no se tiene que ejecutar esto era antes de WS
         if (players[0].status === "win") {
             this.borrarIntervalos();
             console.log(players)
@@ -3348,6 +3384,7 @@ class Scene_play_Online extends Phaser.Scene {
             this.yo.status = "";
             this.yo.id = 0;
             this.yo.side = 0;
+
             alert("Player 2 ya ha llegado a la meta, volviendo al menu principal");
             this.eliminarUsuario(players[1], () => {
                 this.yo = null;
@@ -3375,7 +3412,6 @@ class Scene_play_Online extends Phaser.Scene {
         player.user = null;
         player.id = 0;
         this.putPlayer(player, callback)
-
 
     }
 
@@ -3629,7 +3665,7 @@ class Scene_play_Online extends Phaser.Scene {
                 this.escenarios[escenario].plataformasP1[i].body.velocity.x = plataformas[j + 2].x;
                 this.escenarios[escenario].plataformasP1[i].body.velocity.y = plataformas[j + 2].y;
             }
-        }else{
+        } else {
             let plataformas = message.arrayPlatforms;
             let escenario = message.escenario;
             let tam = this.escenarios[escenario].plataformasP1.length;
@@ -3711,6 +3747,14 @@ class Scene_play_Online extends Phaser.Scene {
 
 
     }
+
+
+
+    habilitarPausa(){
+        console.log("vamos a activar la pausa")
+        setTimeout(()=>{this.ActivarPausa=true},300)
+    }
+
 }
 
 
