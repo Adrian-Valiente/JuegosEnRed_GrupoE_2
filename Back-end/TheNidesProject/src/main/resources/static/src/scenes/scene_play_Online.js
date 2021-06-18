@@ -1,56 +1,44 @@
 import Escenario from '../gameObjects/Escenario.js';
-class Scene_play extends Phaser.Scene {
+class Scene_play_Online extends Phaser.Scene {
     constructor() {
-        super({ key: "Scene_play" });
+        super({ key: "Scene_play_Online" });
         this.escenasActivas = [false, false];
 
         this.escenarios = [];
+        //NUEVO, ARRAY DE PLATAFORMAS
+        this.plataformasGimnasioP1 = [];
+        this.plataformasGimnasioP2 = [];
+        this.plataformasContadorP1 = [];
+        this.plataformasContadorP2 = [];
+        this.plataformasElectricidadP1 = [];
+        this.plataformasElectricidadP2 = [];
+        this.plataformasLaboratorioP1 = [];
+        this.plataformasLaboratorioP2 = [];
+        this.plataformasNieveP1 = [];
+        this.plataformasNieveP2 = [];
+        this.ultimaActualizacionPlataforma = 0;
+        this.ActivarPausa=false;
+
     }
     init(data) {
         this.soundManager = data.soundManager;
         this.data = data;
+        this.data.lobby;
         this.online = data.online
         if (this.online) {
             this.partidaDatos = data.partida;
             this.yo = data.yo
+            this.lobby = this.data.lobby;
             //playerPulse
-            var playerPulse = new WebSocket('ws://127.0.0.1:8080/playerPulse');
-            this.playerPulse = playerPulse;
+            var handler = new WebSocket('ws://127.0.0.1:8080/' + this.data.lobby.nombre);
+            this.handler = handler;
 
-            this.playerPulse.onerror = function (e) {
+            this.handler.onerror = function (e) {
                 console.log("WS error: " + e);
             }
 
 
-            this.playerPulse.onopen = function () {
-                console.log("Estamos conectados al puerto, naaah de locos");
-            }
-
-
-            //playerPosition
-            var playerPosition = new WebSocket('ws://127.0.0.1:8080/playerPosition');
-            this.playerPosition = playerPosition;
-            this.playerPosition.onerror = function (e) {
-                console.log("WS error: " + e);
-            }
-
-
-            //GameEvent
-
-            this.playerPosition.onopen = function () {
-                console.log("Estamos conectados al puerto, naaah de locos");
-            }
-
-            var gameEvent = new WebSocket('ws://127.0.0.1:8080/gameEvent');
-            this.gameEvent = gameEvent;
-            this.gameEvent.onerror = function (e) {
-                console.log("WS error: " + e);
-            }
-
-
-
-
-            this.gameEvent.onopen = function () {
+            this.handler.onopen = function () {
                 console.log("Estamos conectados al puerto, naaah de locos");
             }
 
@@ -73,6 +61,7 @@ class Scene_play extends Phaser.Scene {
     create() {
 
         this.borrarIntervalos();
+        this.ActivarControles = false;
         /*        
            let tamanio=escenas.length;
              let i=0;
@@ -97,6 +86,10 @@ class Scene_play extends Phaser.Scene {
 
 
 
+        // ! poner un fondo enorme que tape todo para simular que esta cargando todo
+
+        this.loading1BG = this.add.image(0, 160, "Loading1").setOrigin(0, 0).setScale(0.56,0.56).setDepth(1001);
+        this.loading2BG = this.add.image(0, 520, "Loading2").setOrigin(0, 0).setScale(0.56,0.56).setDepth(1001);
 
 
         //Pensar esto un pcoo mejor
@@ -110,7 +103,7 @@ class Scene_play extends Phaser.Scene {
         var that = this;
 
         this.end = { player1: false, player2: false };
-
+        this.Eauxiliar = false;
 
         //Factor de suma 1180 * this.escenarios[i].pos
 
@@ -129,6 +122,7 @@ class Scene_play extends Phaser.Scene {
         this.playerU.time = 0;
         this.playerU.setDepth(1000);
         this.playerU.name = this.data.users.p1.user;
+        this.playerU.position = 0;
 
         //Player 2//
 
@@ -141,6 +135,7 @@ class Scene_play extends Phaser.Scene {
         this.playerD.velocidad = 300;
         this.playerD.setDepth(1000);
         this.playerD.name = this.data.users.p2.user;
+        this.playerD.position = 0;
 
         //Cargar sonido
 
@@ -167,6 +162,7 @@ class Scene_play extends Phaser.Scene {
         this.blurGU.displayHeight = this.game.canvas.height / 2 - 10;
         this.blurGU.displayWidth = this.game.canvas.width;
         this.blurGU.alpha = 0;
+        this.blurGU.setDepth(1001);
 
         let cinU = this.add.image(1030 + 1180 * this.escenarios[0].pos, 89, "cintaSprite")
 
@@ -179,9 +175,6 @@ class Scene_play extends Phaser.Scene {
         cinU.setScale(0.30);
 
 
-
-        let groupCintaU = this.add.group()
-        groupCintaU.add(cintaU);
 
 
 
@@ -215,6 +208,7 @@ class Scene_play extends Phaser.Scene {
         this.blurGD.displayHeight = this.game.canvas.height / 2;
         this.blurGD.displayWidth = this.game.canvas.width;
         this.blurGD.alpha = 0;
+        this.blurGD.setDepth(1001);
 
         //se ha modificado la posición de la colisión de la cinta para junto a un sprite
         let cintaD = this.physics.add.image(1024 + 1180 * this.escenarios[0].pos, 483, "muro")
@@ -228,10 +222,10 @@ class Scene_play extends Phaser.Scene {
         cinD.setScale(0.30);
 
         //Plataformas jugador 1
-        this.crearPlataformasGimnasioP1();
+        // !  this.crearPlataformasGimnasioP1();
 
         //Plataformas jugador 2
-        this.crearPlataformasGimnasioP2();
+        // ! this.crearPlataformasGimnasioP2();
 
         //Power Up jugador 1
         this.crearSpeedUpP1(825, 300, this.escenarios[0].pos);
@@ -315,7 +309,7 @@ class Scene_play extends Phaser.Scene {
         this.escBU2.displayHeight = this.game.canvas.height / 2;
         this.escBU2.displayWidth = this.game.canvas.width;
         this.escBU2.alpha = 0;
-        this.escBU2.setDepth(11);
+        this.escBU2.setDepth(1001);
 
 
         //Parte jugador 2
@@ -362,14 +356,14 @@ class Scene_play extends Phaser.Scene {
         this.escBU22.displayHeight = this.game.canvas.height / 2;
         this.escBU22.displayWidth = this.game.canvas.width;
         this.escBU22.alpha = 0;
-        this.escBU22.setDepth(11)
+        this.escBU22.setDepth(1001)
 
 
         //Plataformas jugador 1
-        this.crearPlataformasContador1();
+        // ! this.crearPlataformasContador1();
 
         //Plataformas jugador 2
-        this.crearPlataformasContador2();
+        // ! this.crearPlataformasContador2();
 
         //Power Up jugador 1
         this.crearMenosTP1(720, 300, this.escenarios[1].pos);
@@ -391,7 +385,8 @@ class Scene_play extends Phaser.Scene {
         banderaU.displayWidth = this.game.canvas.width * 0.08;
         banderaU.setImmovable(true)
         banderaU.alpha = 1;
-        this.crearPlataformasNieve1();
+
+        //! this.crearPlataformasNieve1();
 
         //Parte jugador 2
 
@@ -404,7 +399,7 @@ class Scene_play extends Phaser.Scene {
         banderaD.displayHeight = this.game.canvas.height * 0.1;
         banderaD.displayWidth = this.game.canvas.width * 0.08;
         banderaD.setImmovable(true)
-        this.crearPlataformasNieve2();
+        // ! this.crearPlataformasNieve2();
 
 
 
@@ -447,12 +442,13 @@ class Scene_play extends Phaser.Scene {
         this.blurElectricidadU.displayHeight = this.game.canvas.height / 2 - 10;
         this.blurElectricidadU.displayWidth = this.game.canvas.width;
         this.blurElectricidadU.alpha = 0;
+        this.blurElectricidadU.setDepth(1001);
 
         //Plataformas jugador 1
-        this.crearPlataformasElectricidad1(that);
+        // ! this.crearPlataformasElectricidad1(that);
 
         //Plataformas jugador 2
-        this.crearPlataformasElectricidad2(that);
+        // ! this.crearPlataformasElectricidad2(that);
 
         //Power Up jugador 1
         this.crearMenosTP1(15, 50, this.escenarios[3].pos);
@@ -498,6 +494,7 @@ class Scene_play extends Phaser.Scene {
         this.blurElectricidadD.displayHeight = this.game.canvas.height / 2;
         this.blurElectricidadD.displayWidth = this.game.canvas.width;
         this.blurElectricidadD.alpha = 0;
+        this.blurElectricidadD.setDepth(1001);
 
 
 
@@ -538,8 +535,9 @@ class Scene_play extends Phaser.Scene {
         this.blurLaboratorioU.displayHeight = this.game.canvas.height / 2 - 10;
         this.blurLaboratorioU.displayWidth = this.game.canvas.width;
         this.blurLaboratorioU.alpha = 0;
+        this.blurLaboratorioU.setDepth(1001);
 
-        this.crearPlataformasLaboratorio1();
+        // ! this.crearPlataformasLaboratorio1();
 
         //POWER UPS JUGADOR 1
         this.crearSpeedUpP1(825, 300, this.escenarios[4].pos);
@@ -580,8 +578,9 @@ class Scene_play extends Phaser.Scene {
         this.blurLaboratorioD.displayHeight = this.game.canvas.height / 2;
         this.blurLaboratorioD.displayWidth = this.game.canvas.width;
         this.blurLaboratorioD.alpha = 0;
+        this.blurLaboratorioD.setDepth(1001);
 
-        this.crearPlataformasLaboratorio2();
+        // ! this.crearPlataformasLaboratorio2();
 
         //POWER UPS JUGADOR 2
         this.crearSpeedUpP2(825, 300, this.escenarios[4].pos);
@@ -702,7 +701,7 @@ class Scene_play extends Phaser.Scene {
 
 
 
-        this.CP1 = this.physics.add.overlap(this.playerU, groupCintaU, () => { this.Prueba(this.playerU) }, this.funcionOverlapP1, this);
+        this.CP1 = this.physics.add.overlap(this.playerU, cintaU, () => { this.Prueba(this.playerU) }, this.funcionOverlapP1, this);
         this.CP2 = this.physics.add.overlap(this.playerD, cintaD, () => { this.Prueba(this.playerD) }, this.funcionOverlapP2, this);
         this.CoP1 = this.physics.add.overlap(this.playerU, pruebaContador, () => { this.Prueba(this.playerU) }, this.funcionOverlapP1, this);
         this.CoP2 = this.physics.add.overlap(this.playerD, pruebaContador2, () => { this.Prueba(this.playerD) }, this.funcionOverlapP2, this);
@@ -753,6 +752,21 @@ class Scene_play extends Phaser.Scene {
         this.cam1.ignore(cronoJ2);
         this.cam2.ignore(this.TiempoP1);
         this.cam2.ignore(cronoJ1);
+
+
+
+        /*
+        * 1º Background
+        *
+        * 2º Cuando cada usuario carga envia un mensaje diciendo que esta al toque
+        * 
+        * 3º En el servidor ponemos algun tipo de contador o lo que sea y cuando vea que ese contador
+        *    llega a 2 o como veamos conveniente
+        * 
+        * 4º Este envia un mensaje diciendo eh loquete crea plataformas borra el background ese feo yyy
+        *    inicia los timers
+        */
+
 
 
 
@@ -845,49 +859,21 @@ class Scene_play extends Phaser.Scene {
 
 
 
-            if (this.playerPulse.readyState === 0) {
+            if (this.handler.readyState === 0) {
                 setTimeout(() => {
-                    this.playerPulseMnj();
-                    console.log("Recibo mensajes??");
-                    console.log("Recibo mensajes??");
-                    console.log("Recibo mensajes??");
-                    console.log("Recibo mensajes??");
+                    this.onMensajeHandler();
+                    let msg = {
+                        tipo: "CONECTADO"
+                    }
+
+                    this.handler.send(JSON.stringify(msg));
 
                 }, 3000)
             } else {
-                this.playerPulseMnj();
-                console.log("Recibo mensajes");
-                console.log("Recibo mensajes");
-                console.log("Recibo mensajes");
-                console.log("Recibo mensajes");
-                console.log("Recibo mensajes");
+                this.onMensajeHandler();
+
 
             }
-
-            if (this.playerPosition.readyState === 0) {
-                setTimeout(() => {
-                    this.PlayerPositionMnj();
-                    console.log("Recibo mensajes??");
-                    console.log("Recibo mensajes??");
-                    console.log("Recibo mensajes??");
-                    console.log("Recibo mensajes??");
-                }, 3000)
-            } else {
-                this.PlayerPositionMnj();
-                console.log("Recibo mensajes");
-                console.log("Recibo mensajes");
-                console.log("Recibo mensajes");
-                console.log("Recibo mensajes");
-
-            }
-            if (this.gameEvent.readyState === 0) {
-                setTimeout(() => {
-                    this.gameEventMnj();
-                }, 3000);
-            } else {
-                this.gameEventMnj();
-            }
-
 
         }
 
@@ -988,16 +974,18 @@ class Scene_play extends Phaser.Scene {
             }
 
 
-        } else {
+        } else if (this.online && this.ActivarControles) {
+
             if (this.yo.side === 1) {
                 if (!this.escenasActivas[0]) {
                     let w = false;
                     let a = false;
-
+                    let e = false;
                     let d = false;
                     let touching = true;
                     let t = time % 60;
                     let t2 = time % 80;
+
 
 
 
@@ -1011,17 +999,6 @@ class Scene_play extends Phaser.Scene {
                             this.playerU.anims.play("SaltoIzquierdaP1", true);
                         }
 
-
-                        var msg = {
-                            w: w,
-                            a: a,
-                            side: 1,
-                            d: d,
-                            touching: touching
-                        }
-
-
-
                     }
                     if (this.keyboardP1.D.isDown === true) {
                         d = true;
@@ -1032,9 +1009,6 @@ class Scene_play extends Phaser.Scene {
                             touching = false;
                             this.playerU.anims.play("SaltoDerechaP1", true);
                         }
-
-
-
 
 
                     }
@@ -1061,141 +1035,96 @@ class Scene_play extends Phaser.Scene {
 
                     }
 
-                    if (this.keyboardP1.W.isDown === true && this.playerU.body.touching.down) {
-                    
-                        this.playerU.setVelocityY(-750); //cambiar para que salte menos y poder bajar plataformas
-                        w = true;
-
-                        let msgf = {
-                            w: w,
-                            a: a,
-                            side: 1,
-                            d: d,
-                            touching: touching
-                        }
-                        this.playerPulse.send(JSON.stringify(msgf));
-                    }
-
-
-
-
-
                     var msg = {
+                        tipo: "BOTONES",
                         w: w,
                         a: a,
                         side: 1,
                         d: d,
+                        e: e,
                         touching: touching
                     }
-                    if (this.playerPulse.readyState === 1 && (t >= 20 && t <= 40)) {
-                        this.playerPulse.send(JSON.stringify(msg));
+
+                    if (this.keyboardP1.W.isDown === true && this.playerU.body.touching.down) {
+
+                        this.playerU.setVelocityY(-750); //cambiar para que salte menos y poder bajar plataformas
+                        w = true;
+
+                        let msgf = {
+                            tipo: "BOTONES",
+                            w: w,
+                            a: a,
+                            side: 1,
+                            d: d,
+                            e: e,
+                            touching: touching
+                        }
+                        this.handler.send(JSON.stringify(msgf));
                     }
 
-                    if (this.playerPosition.readyState === 1 && (t >= 20 && t <= 40)) {
+                    var msg = {
+                        tipo: "BOTONES",
+                        w: w,
+                        a: a,
+                        side: 1,
+                        d: d,
+                        e: e,
+                        touching: touching
+                    }
+                    if (this.handler.readyState === 1 && ((t >= 0 && t <= 5) || (t >= 10 && t <= 15) || (t >= 20 && t <= 25) || (t >= 30 && t <= 35))) {
+                        this.handler.send(JSON.stringify(msg));
+                    }
+
+                    if (this.handler.readyState === 1 && ((t >= 0 && t <= 5) || (t >= 10 && t <= 15) || (t >= 20 && t <= 25) || (t >= 30 && t <= 35))) {
                         var that = this;
                         let msgPos = {
+                            tipo: "POSICION",
                             x: that.playerU.x,
                             y: that.playerU.y,
                             side: 1
                         }
 
-                        this.playerPosition.send(JSON.stringify(msgPos));
+                        this.handler.send(JSON.stringify(msgPos));
+                    }
+
+                    if (((t2 >= 0 && t2 <= 5) || (t2 >= 60 && t2 <= 65))) {
+
+
+
+                        let aux = []
+                        let esce = this.playerU.position;
+                        let lenghtArray = this.escenarios[this.playerU.position].plataformasP1.length;
+
+
+
+                        for (let j = 0; j < lenghtArray; j++) {
+
+                            let i = j * 3
+
+                            aux[i] = this.escenarios[this.playerU.position].plataformasP1[j].x
+                            aux[i + 1] = this.escenarios[this.playerU.position].plataformasP1[j].y
+                            aux[i + 2] = this.escenarios[this.playerU.position].plataformasP1[j].body.velocity;
+
+                        }
+
+
+                        let msg = {
+                            tipo: "PLATFORM",
+                            arrayPlatforms: aux,
+                            escenario: esce
+
+                        }
+                        // console.log(msg);
+
+                        this.handler.send(JSON.stringify(msg));
+
                     }
 
 
                 }
-                /*
-                // Personaje 1
-                if (!this.escenasActivas[0]) {
-
-                    
-
-                    var jugador=this.yo;
-
-                    if (this.keyboardP1.W.isDown === true && this.playerU.body.touching.down) {
-                        this.playerU.setVelocityY(-750); //cambiar para que salte menos y poder bajar plataformas
-
-                        //Mensaje
-                        var position = { x: this.playerU.x, y: this.playerU.y };
-                        var msg = {
-                            user: jugador.user,
-                            status: jugador.status,
-                            id: jugador.id,
-                            side: jugador.side,
-                            x: position.x,
-                            y: position.y
-                        }
-                        
-                        if (this.connection.readyState === 1) {
-                            this.connection.send(JSON.stringify(msg));
-                        }
-                    }
-
-                    if (this.keyboardP1.A.isDown === true) {
-                        //Mensaje
-                        var position = { x: this.playerU.x, y: this.playerU.y };
-                        var msg = {
-                            user: jugador.user,
-                            status: jugador.status,
-                            id: jugador.id,
-                            side: jugador.side,
-                            x: position.x,
-                            y: position.y
-                        }
-
-                        if (this.connection.readyState === 1) {
-                            this.connection.send(JSON.stringify(msg));
-                        }
-                        this.playerU.body.setVelocityX(-this.playerU.velocidad);
-                        if (this.playerU.body.touching.down) {
-                            this.playerU.anims.play("CorrerIzquierdaP1", true);
-
-                            
 
 
-                        } else {
-                            this.playerU.anims.play("SaltoIzquierdaP1", true);
-                        }
 
-                    }
-                    if (this.keyboardP1.D.isDown === true) {
-                        this.playerU.body.setVelocityX(this.playerU.velocidad);
-                        //Mensaje
-                        var position = { x: this.playerU.x, y: this.playerU.y };
-                        var msg = {
-                            user: jugador.user,
-                            status: jugador.status,
-                            id: jugador.id,
-                            side: jugador.side,
-                            x: position.x,
-                            y: position.y
-                        }
-                        if (this.connection.readyState === 1) {
-                            this.connection.send(JSON.stringify(msg));
-                        }
-
-                        if (this.playerU.body.touching.down) {
-                            this.playerU.anims.play("CorrerDerechaP1", true);
-
-                            
-                        } else {
-                            this.playerU.anims.play("SaltoDerechaP1", true);
-                        }
-                    }
-
-                    if (this.keyboardP1.D.isDown === false && this.keyboardP1.A.isDown === false && this.keyboardP1.W.isDown === false) {
-                        if (this.playerU.body.velocity.x > 0) {
-                            this.playerU.anims.stop();
-                            this.playerU.anims.play("IdleDerechaP1", true);
-                        }
-                        if (this.playerU.body.velocity.x < 0) {
-                            this.playerU.anims.stop();
-                            this.playerU.anims.play("IdleIzquierdaP1", true);
-                        }
-                        this.playerU.body.setVelocityX(0);
-                    }
-
-                }//*/
 
             } else if (this.yo.side === 2) {
 
@@ -1203,7 +1132,7 @@ class Scene_play extends Phaser.Scene {
 
                     let w = false;
                     let a = false;
-
+                    let e = false;
                     let d = false;
                     let touching = true;
                     let t = time % 60;
@@ -1222,13 +1151,7 @@ class Scene_play extends Phaser.Scene {
                         }
 
 
-                        var msg = {
-                            w: w,
-                            a: a,
-                            side: 2,
-                            d: d,
-                            touching: touching
-                        }
+
 
 
 
@@ -1272,45 +1195,86 @@ class Scene_play extends Phaser.Scene {
                     }
 
                     if (this.keyboardP1.W.isDown === true && this.playerD.body.touching.down) {
-                        
+
                         this.playerD.setVelocityY(-750); //cambiar para que salte menos y poder bajar plataformas
                         w = true;
 
                         let msgf = {
+                            tipo: "BOTONES",
                             w: w,
                             a: a,
                             side: 2,
                             d: d,
+                            e: e,
                             touching: touching
                         }
-                        this.playerPulse.send(JSON.stringify(msgf));
+                        this.handler.send(JSON.stringify(msgf));
                     }
 
-
-
-
-
                     var msg = {
+                        tipo: "BOTONES",
                         w: w,
                         a: a,
                         side: 2,
                         d: d,
+                        e: e,
                         touching: touching
                     }
-                    if (this.playerPulse.readyState === 1 && (t >= 10 && t <= 30)) {
-                        this.playerPulse.send(JSON.stringify(msg));
+                    if (this.handler.readyState === 1 && ((t >= 5 && t <= 10) || (t >= 15 && t <= 20) || (t >= 25 && t <= 30) || (t >= 35 && t <= 40))) {
+                        this.handler.send(JSON.stringify(msg));
                     }
 
-                    if (this.playerPosition.readyState === 1 && (t >= 10 && t <= 30)) {
+                    if (this.handler.readyState === 1 && ((t >= 5 && t <= 10) || (t >= 15 && t <= 20) || (t >= 25 && t <= 30) || (t >= 35 && t <= 40))) {
                         var that = this;
                         let msgPos = {
+                            tipo: "POSICION",
                             x: that.playerD.x,
                             y: that.playerD.y,
                             side: 2
                         }
 
-                        this.playerPosition.send(JSON.stringify(msgPos));
+                        this.handler.send(JSON.stringify(msgPos));
                     }
+
+
+
+
+                    if (((t2 >= 5 && t2 <= 10)  || (t2 >= 65 && t2 <= 70))) {
+
+
+
+                        let aux = []
+                        let esce = this.playerD.position;
+                        let lenghtArray = this.escenarios[this.playerD.position].plataformasP2.length;
+
+
+
+                        for (let j = 0; j < lenghtArray; j++) {
+
+                            let i = j * 3
+
+                            aux[i] = this.escenarios[this.playerD.position].plataformasP2[j].x
+                            aux[i + 1] = this.escenarios[this.playerD.position].plataformasP2[j].y
+                            aux[i + 2] = this.escenarios[this.playerD.position].plataformasP2[j].body.velocity;
+
+                        }
+
+
+                        let msg = {
+                            tipo: "PLATFORM",
+                            arrayPlatforms: aux,
+                            escenario: esce
+
+                        }
+                        // console.log(msg);
+
+                        this.handler.send(JSON.stringify(msg));
+
+                    }
+
+
+
+
 
 
                 }
@@ -1325,55 +1289,16 @@ class Scene_play extends Phaser.Scene {
             console.log("Iniciando pausa")
             this.keyLockP2 = true;
             this.keyboardP2.ESC.isDown = false;
-            this.pararP1();
-            this.pararP2();
-            if (this.online) {
+            // this.pararP1();
+            // this.pararP2();
+            if (this.online&& this.ActivarPausa) {
+                this.ActivarPausa=false;
+                this.ActivarControles=false;
                 this.scene.launch("Pause", { escena: this, soundManager: this.soundManager, online: this.online, yo: this.yo, partida: this.partidaDatos })
-            } else {
-                this.scene.launch("Pause", { escena: this, soundManager: this.soundManager })
             }
 
             //this.keyboardP2.ESC.isDown=true;
         }
-
-        /*
-        if (this.online) {
-
-            var jugador = this.yo;
-
-            let t = time % 60;
-
-
-            if (jugador.side === 1 && (t >= 30 || t <= 33)) {
-                var position = { x: this.playerU.x, y: this.playerU.y };
-                // position.x = this.playerU.x;
-                // position.y = this.playerU.y;
-                console.log("Tiempoo:: ", time)
-                console.log("Tiempoo:: " + time)
-                var msg = {
-                    user: jugador.user,
-                    status: jugador.status,
-                    id: jugador.id,
-                    side: jugador.side,
-                    x: position.x,
-                    y: position.y
-                }
-                console.log("Enviandoo diria yoo nuse");
-                console.log(msg);
-                if (this.connection.readyState === 1) {
-                    console.log("ReadyState");
-                    this.connection.send(JSON.stringify(msg));
-                }
-            }
-
-
-
-
-        }
-        //*/
-
-
-
 
 
     }
@@ -1427,39 +1352,41 @@ class Scene_play extends Phaser.Scene {
 
     }
     PruebaP2(code) {
-        if (this.keyboardP2.SPACE.isDown === true && !this.escenasActivas[1]) {
-            let p = 0;
-            let e = 0;
-            for (let i = 0; i < this.escenarios.length; i++) {
-                if (code === this.escenarios[i].pos) {
-                    p = this.escenarios[i].nombre
-                    e = i;
-                }
 
+
+
+        let p = 0;
+        let e = 0;
+        for (let i = 0; i < this.escenarios.length; i++) {
+            if (code === this.escenarios[i].pos) {
+                p = this.escenarios[i].nombre
+                e = i;
             }
-
-
-            if (this.escenarios[e].completadoP2U === false) {
-                this.scene.launch(p + "P2", { escena: this, soundManager: this.soundManager });
-                this.escenasActivas[1] = true;
-
-            }
-            if (this.escenarios[e].completadoP2U === true && this.escenarios[e].doble === true) {
-                if (this.escenarios[e].completadoP2D === false) {
-                    console.log("INICIANDO PARTE 2")
-                    this.scene.launch(p + "P2V2", { escena: this, soundManager: this.soundManager });
-                    this.escenasActivas[1] = true;
-                }
-            }
-
 
         }
+
+
+        if (this.escenarios[e].completadoP2U === false) {
+            this.scene.launch(p + "P2", { escena: this, soundManager: this.soundManager });
+            this.escenasActivas[1] = true;
+
+        }
+        if (this.escenarios[e].completadoP2U === true && this.escenarios[e].doble === true) {
+            if (this.escenarios[e].completadoP2D === false) {
+                console.log("INICIANDO PARTE 2")
+                this.scene.launch(p + "P2V2", { escena: this, soundManager: this.soundManager });
+                this.escenasActivas[1] = true;
+            }
+        }
+
+
+
 
     }
 
 
 
-    teletransporte(player, factor, camara, aux) {
+    teletransporte(player, factor, camara, aux, escenario) {
 
         if (this.keyboardP1.E.isDown === true || aux === true) {
 
@@ -1467,6 +1394,7 @@ class Scene_play extends Phaser.Scene {
             player.body.setVelocityY(0);
             player.anims.stop();
             player.x = (1180 * (factor + 1) + 25);
+            player.position = escenario;
 
 
             player.y = this.game.canvas.height / 2 - 55;
@@ -1476,34 +1404,45 @@ class Scene_play extends Phaser.Scene {
             this.soundManager.play('TeletransporteFinal')
             if (this.online && this.yo.side === 1) {
                 var msg = {
+                    tipo: "EVENTOS",
                     portal: "null",
                     powerUp: "null",
                     teletransporte: factor
                 }
-                this.gameEvent.send(JSON.stringify(msg))
+                this.handler.send(JSON.stringify(msg))
             }
         }
 
     }
-    teletransporteD(player, factor, camara) {
-        if (this.keyboardP2.SPACE.isDown === true) {
+    teletransporteD(player, factor, camara, aux, escenario) {
+        if (this.keyboardP1.E.isDown === true || aux === true) {
+
             player.body.setVelocityX(0);
             player.body.setVelocityY(0);
             player.anims.stop();
             player.x = (1180 * (factor + 1) + 25);
-
-
             player.y = this.game.canvas.height - 55;
             camara.setBounds(0 + 1180 * (factor + 1), this.game.canvas.height / 2, this.game.canvas.width, this.game.canvas.height / 2)
+            player.position = escenario;
 
             //Sonido
             this.soundManager.play('TeletransporteFinal')
+            if (this.online && this.yo.side === 2) {
+                var msg = {
+                    tipo: "EVENTOS",
+                    portal: "null",
+                    powerUp: "null",
+                    teletransporte: factor
+                }
+                this.handler.send(JSON.stringify(msg))
+            }
+
         }
 
     }
 
 
-    //Funciones Cronometro
+    //#region  funciones Crono
 
     empezar() {
         if (this.playP1 === false) {
@@ -1516,6 +1455,11 @@ class Scene_play extends Phaser.Scene {
             this.elcronoP2 = setInterval(() => { this.tiempoP2(empP2) }, 10);
             this.playP2 = true;
         }
+        this.ActivarControles = true;
+        this.ActivarPausa=true;
+
+
+
     }
 
     tiempoP1(empP1) {
@@ -1678,11 +1622,11 @@ class Scene_play extends Phaser.Scene {
         }
     }
 
+    //#endregion
 
 
 
-
-    //POWER UPS
+    //#region powerUps
 
 
     crearSpeedUpP1(x, y, pos) {
@@ -2046,8 +1990,10 @@ class Scene_play extends Phaser.Scene {
         }
     }
 
+    //#endregion
 
-    //PORTALES
+
+    //#region  Portales
 
 
     crearPortalGimnasioP1() {
@@ -2063,7 +2009,7 @@ class Scene_play extends Phaser.Scene {
         //pos = Math.trunc(pos) - 1
 
 
-        this.physics.add.overlap(this.playerU, this.portal, () => { this.teletransporte(this.playerU, this.escenarios[0].pos, this.cam1) }, this.funcionOverlapP1, this);
+        this.physics.add.overlap(this.playerU, this.portal, () => { this.teletransporte(this.playerU, this.escenarios[0].pos, this.cam1, null, 1) }, this.funcionOverlapP1, this);
 
     }
 
@@ -2076,7 +2022,7 @@ class Scene_play extends Phaser.Scene {
         this.portal.displayWidth = 84; //spritePortal.width x 0.5
         this.portal.alpha = 0;
 
-        this.physics.add.overlap(this.playerU, this.portal, () => { this.teletransporte(this.playerU, this.escenarios[1].pos, this.cam1) }, this.funcionOverlapP1, this);
+        this.physics.add.overlap(this.playerU, this.portal, () => { this.teletransporte(this.playerU, this.escenarios[1].pos, this.cam1, null, 3) }, this.funcionOverlapP1, this);
 
     }
 
@@ -2090,7 +2036,7 @@ class Scene_play extends Phaser.Scene {
         this.portal.displayWidth = 84;
         this.portal.alpha = 0;
 
-        this.physics.add.overlap(this.playerU, this.portal, () => { this.teletransporte(this.playerU, this.escenarios[3].pos, this.cam1) }, this.funcionOverlapP1, this);
+        this.physics.add.overlap(this.playerU, this.portal, () => { this.teletransporte(this.playerU, this.escenarios[3].pos, this.cam1, null, 4) }, this.funcionOverlapP1, this);
 
     }
 
@@ -2107,7 +2053,7 @@ class Scene_play extends Phaser.Scene {
         //pos = Math.trunc(pos) - 1
 
 
-        this.physics.add.overlap(this.playerU, this.portal, () => { this.teletransporte(this.playerU, this.escenarios[4].pos, this.cam1) }, this.funcionOverlapP1, this);
+        this.physics.add.overlap(this.playerU, this.portal, () => { this.teletransporte(this.playerU, this.escenarios[4].pos, this.cam1, null, 2) }, this.funcionOverlapP1, this);
 
     }
 
@@ -2122,7 +2068,7 @@ class Scene_play extends Phaser.Scene {
         this.portalD.displayHeight = 155; //spritePortal.height x 0.5
         this.portalD.displayWidth = 84; //spritePortal.width x 0.5
         this.portalD.alpha = 0;
-        this.physics.add.overlap(this.playerD, this.portalD, () => { this.teletransporteD(this.playerD, this.escenarios[0].pos, this.cam2) }, this.funcionOverlapP2, this); console.log(this.portal)
+        this.physics.add.overlap(this.playerD, this.portalD, () => { this.teletransporteD(this.playerD, this.escenarios[0].pos, this.cam2, null, 1) }, this.funcionOverlapP2, this); console.log(this.portal)
     }
 
 
@@ -2134,7 +2080,7 @@ class Scene_play extends Phaser.Scene {
         this.portalD.displayHeight = 155; //spritePortal.height x 0.5
         this.portalD.displayWidth = 84; //spritePortal.width x 0.5
         this.portalD.alpha = 0;
-        this.physics.add.overlap(this.playerD, this.portalD, () => { this.teletransporteD(this.playerD, this.escenarios[1].pos, this.cam2) }, this.funcionOverlapP2, this); console.log(this.portal);
+        this.physics.add.overlap(this.playerD, this.portalD, () => { this.teletransporteD(this.playerD, this.escenarios[1].pos, this.cam2, null, 3) }, this.funcionOverlapP2, this); console.log(this.portal);
     }
 
 
@@ -2146,7 +2092,7 @@ class Scene_play extends Phaser.Scene {
         this.portalD.displayHeight = 155;
         this.portalD.displayWidth = 84;
         this.portalD.alpha = 0;
-        this.physics.add.overlap(this.playerD, this.portalD, () => { this.teletransporteD(this.playerD, this.escenarios[3].pos, this.cam2) }, this.funcionOverlapP2, this); console.log(this.portal)
+        this.physics.add.overlap(this.playerD, this.portalD, () => { this.teletransporteD(this.playerD, this.escenarios[3].pos, this.cam2, null, 4) }, this.funcionOverlapP2, this); console.log(this.portal)
     }
 
 
@@ -2158,31 +2104,25 @@ class Scene_play extends Phaser.Scene {
         this.portalD.displayHeight = 155; //spritePortal.height x 0.5
         this.portalD.displayWidth = 84; //spritePortal.width x 0.5
         this.portalD.alpha = 0;
-        this.physics.add.overlap(this.playerD, this.portalD, () => { this.teletransporteD(this.playerD, this.escenarios[4].pos, this.cam2) }, this.funcionOverlapP2, this); console.log(this.portal)
+        this.physics.add.overlap(this.playerD, this.portalD, () => { this.teletransporteD(this.playerD, this.escenarios[4].pos, this.cam2, null, 2) }, this.funcionOverlapP2, this); console.log(this.portal)
     }
 
-    //plataformas
+    //#endregion
 
 
+    //#region plataformas
 
     crearPlataformasGimnasioP1() {
         let p1_1_1 = this.physics.add.image(100 + 1180 * this.escenarios[0].pos, this.game.canvas.height * 0.42, "gymplatform").setImmovable(true);
         p1_1_1.displayHeight = 20;
         p1_1_1.displayWidth = 80;
 
-        let p1_1_2 = this.physics.add.image(220 + 1180 * this.escenarios[0].pos, 260, "gymplatform").setImmovable(true);
+        var p1_1_2 = this.physics.add.image(220 + 1180 * this.escenarios[0].pos, 260, "gymplatform").setImmovable(true);
         p1_1_2.displayHeight = 20;
         p1_1_2.displayWidth = 80;
 
         let p1_1_3 = this.physics.add.image(320 + 1180 * this.escenarios[0].pos, 150, "gymplatform").setImmovable(true);
-        this.tweens.timeline({
-            targets: p1_1_3.body.velocity,
-            loop: -1,
-            tweens: [
-                { y: 80, duration: 750, ease: 'Stepped' },
-                { y: -80, duration: 750, ease: 'Stepped' }
-            ]
-        })
+
 
         let p1_1_4 = this.physics.add.image(200 + 1180 * this.escenarios[0].pos, 120, "gymplatform").setImmovable(true);
         p1_1_4.displayHeight = 20;
@@ -2200,18 +2140,11 @@ class Scene_play extends Phaser.Scene {
         p1_1_7.displayHeight = 20;
         p1_1_7.displayWidth = 80;
 
-        let p1_1_8 = this.physics.add.image(650 + 1180 * this.escenarios[0].pos, 230, "gymplatform").setImmovable(true);
+        var p1_1_8 = this.physics.add.image(650 + 1180 * this.escenarios[0].pos, 230, "gymplatform").setImmovable(true);
         p1_1_8.displayHeight = 20;
         p1_1_8.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p1_1_8.body.velocity,
-            loop: -1,
-            tweens: [
-                { y: -60, duration: 850, ease: 'Stepped' },
-                { y: 60, duration: 850, ease: 'Stepped' }
-            ]
-        })
+
 
         let p1_1_9 = this.physics.add.image(750 + 1180 * this.escenarios[0].pos, 135, "gymplatform").setImmovable(true);
         p1_1_9.displayHeight = 20;
@@ -2221,18 +2154,11 @@ class Scene_play extends Phaser.Scene {
         p1_1_10.displayHeight = 20;
         p1_1_10.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p1_1_10.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -60, duration: 1700, ease: 'Stepped' },
-                { x: 60, duration: 1700, ease: 'Stepped' }
-            ]
-        })
 
         let p1_1_11 = this.physics.add.image(1020 + 1180 * this.escenarios[0].pos, 135, "gymplatform").setImmovable(true);
         p1_1_11.displayHeight = 20;
         p1_1_11.displayWidth = 80;
+
 
 
         let grupoP1_gym = this.add.group();
@@ -2250,6 +2176,55 @@ class Scene_play extends Phaser.Scene {
 
         this.physics.add.collider(this.playerU, grupoP1_gym);
 
+
+        if (this.yo.side === 1) {
+            1
+
+            this.tweens.timeline({
+                targets: p1_1_3.body.velocity,
+                loop: -1,
+                tweens: [
+                    { y: 80, duration: 750, ease: 'Stepped' },
+                    { y: -80, duration: 750, ease: 'Stepped' }
+                ]
+            })
+
+
+            this.tweens.timeline({
+                targets: p1_1_8.body.velocity,
+                loop: -1,
+                tweens: [
+                    { y: -60, duration: 850, ease: 'Stepped' },
+                    { y: 60, duration: 850, ease: 'Stepped' }
+                ]
+            })
+
+
+            this.tweens.timeline({
+                targets: p1_1_10.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -60, duration: 1700, ease: 'Stepped' },
+                    { x: 60, duration: 1700, ease: 'Stepped' }
+                ]
+            })
+
+        }
+
+
+
+        this.plataformasGimnasioP1[0] = p1_1_3;
+        this.plataformasGimnasioP1[1] = p1_1_8;
+        this.plataformasGimnasioP1[2] = p1_1_10;
+
+
+
+        console.log("Plataformas: ", this.plataformas);
+
+
+
+
+
     }
 
     crearPlataformasGimnasioP2() {
@@ -2262,14 +2237,7 @@ class Scene_play extends Phaser.Scene {
         p2_1_2.displayWidth = 80;
 
         let p2_1_3 = this.physics.add.image(320 + 1180 * this.escenarios[0].pos, 510, "gymplatform").setImmovable(true);
-        this.tweens.timeline({
-            targets: p2_1_3.body.velocity,
-            loop: -1,
-            tweens: [
-                { y: 80, duration: 750, ease: 'Stepped' },
-                { y: -80, duration: 750, ease: 'Stepped' }
-            ]
-        })
+
 
         let p2_1_4 = this.physics.add.image(200 + 1180 * this.escenarios[0].pos, 480, "gymplatform").setImmovable(true);
         p2_1_4.displayHeight = 20;
@@ -2291,14 +2259,7 @@ class Scene_play extends Phaser.Scene {
         p2_1_8.displayHeight = 20;
         p2_1_8.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p2_1_8.body.velocity,
-            loop: -1,
-            tweens: [
-                { y: -60, duration: 850, ease: 'Stepped' },
-                { y: 60, duration: 850, ease: 'Stepped' }
-            ]
-        })
+
 
         let p2_1_9 = this.physics.add.image(750 + 1180 * this.escenarios[0].pos, 495, "gymplatform").setImmovable(true);
         p2_1_9.displayHeight = 20;
@@ -2308,14 +2269,7 @@ class Scene_play extends Phaser.Scene {
         p2_1_10.displayHeight = 20;
         p2_1_10.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p2_1_10.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -60, duration: 1700, ease: 'Stepped' },
-                { x: 60, duration: 1700, ease: 'Stepped' }
-            ]
-        })
+
 
         let p2_1_11 = this.physics.add.image(1020 + 1180 * this.escenarios[0].pos, 495, "gymplatform").setImmovable(true);
         p2_1_11.displayHeight = 20;
@@ -2337,6 +2291,44 @@ class Scene_play extends Phaser.Scene {
 
         this.physics.add.collider(this.playerD, grupoP2_gym);
 
+        this.plataformasGimnasioP2[0] = p2_1_3;
+        this.plataformasGimnasioP2[1] = p2_1_8;
+        this.plataformasGimnasioP2[2] = p2_1_10;
+
+        if (this.yo.side === 2) {
+
+            this.tweens.timeline({
+                targets: p2_1_3.body.velocity,
+                loop: -1,
+                tweens: [
+                    { y: 80, duration: 750, ease: 'Stepped' },
+                    { y: -80, duration: 750, ease: 'Stepped' }
+                ]
+            })
+
+            this.tweens.timeline({
+                targets: p2_1_8.body.velocity,
+                loop: -1,
+                tweens: [
+                    { y: -60, duration: 850, ease: 'Stepped' },
+                    { y: 60, duration: 850, ease: 'Stepped' }
+                ]
+            })
+
+
+
+            this.tweens.timeline({
+                targets: p2_1_10.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -60, duration: 1700, ease: 'Stepped' },
+                    { x: 60, duration: 1700, ease: 'Stepped' }
+                ]
+            })
+
+        }
+
+
     }
 
     crearPlataformasContador1() {
@@ -2344,29 +2336,13 @@ class Scene_play extends Phaser.Scene {
         p1_2_1.displayHeight = 20;
         p1_2_1.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p1_2_1.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: 60, duration: 2000, ease: 'Stepped' },
-                { x: -60, duration: 2000, ease: 'Stepped' }
 
-            ]
-        });
 
         let p1_2_2 = this.physics.add.image(275 + 1180 * this.escenarios[1].pos, 220, "contplatform").setImmovable(true);
         p1_2_2.displayHeight = 20;
         p1_2_2.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p1_2_2.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -80, duration: 1300, ease: 'Stepped' },
-                { x: 80, duration: 1300, ease: 'Stepped' }
 
-            ]
-        });
 
         let p1_2_3 = this.physics.add.image(75 + 1180 * this.escenarios[1].pos, 150, "contplatform").setImmovable(true);
         p1_2_3.displayHeight = 20;
@@ -2376,15 +2352,6 @@ class Scene_play extends Phaser.Scene {
         p1_2_4.displayHeight = 20;
         p1_2_4.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p1_2_4.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: 70, duration: 1500, ease: 'Stepped' },
-                { x: -70, duration: 1500, ease: 'Stepped' }
-
-            ]
-        });
 
         let p1_2_5 = this.physics.add.image(390 + 1180 * this.escenarios[1].pos, 100, "contplatform").setImmovable(true);
         p1_2_5.displayHeight = 20;
@@ -2394,15 +2361,7 @@ class Scene_play extends Phaser.Scene {
         p1_2_6.displayHeight = 20;
         p1_2_6.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p1_2_6.body.velocity,
-            loop: -1,
-            tweens: [
-                { y: 40, duration: 2500, ease: 'Stepped' },
-                { y: -40, duration: 2500, ease: 'Stepped' }
 
-            ]
-        });
 
         let p1_2_7 = this.physics.add.image(610 + 1180 * this.escenarios[1].pos, 200, "contplatform").setImmovable(true);
         p1_2_7.displayHeight = 20;
@@ -2446,6 +2405,60 @@ class Scene_play extends Phaser.Scene {
 
         this.physics.add.collider(this.playerU, grupoP1_cont);
 
+
+        this.plataformasContadorP1[0] = p1_2_1;
+        this.plataformasContadorP1[1] = p1_2_2;
+        this.plataformasContadorP1[2] = p1_2_4;
+        this.plataformasContadorP1[3] = p1_2_6;
+
+
+
+        if (this.yo.side === 1) {
+            this.tweens.timeline({
+                targets: p1_2_1.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: 60, duration: 2000, ease: 'Stepped' },
+                    { x: -60, duration: 2000, ease: 'Stepped' }
+
+                ]
+            });
+
+            this.tweens.timeline({
+                targets: p1_2_2.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -80, duration: 1300, ease: 'Stepped' },
+                    { x: 80, duration: 1300, ease: 'Stepped' }
+
+                ]
+            });
+
+            this.tweens.timeline({
+                targets: p1_2_4.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: 70, duration: 1500, ease: 'Stepped' },
+                    { x: -70, duration: 1500, ease: 'Stepped' }
+
+                ]
+            });
+
+
+            this.tweens.timeline({
+                targets: p1_2_6.body.velocity,
+                loop: -1,
+                tweens: [
+                    { y: 40, duration: 2500, ease: 'Stepped' },
+                    { y: -40, duration: 2500, ease: 'Stepped' }
+
+                ]
+            });
+
+        }
+
+
+
     }
     crearPlataformasContador2() {
         let p2_2_1 = this.physics.add.image(100 + 1180 * this.escenarios[1].pos, this.game.canvas.height * 0.42 + 360, "contplatform").setImmovable(true);
@@ -2453,30 +2466,13 @@ class Scene_play extends Phaser.Scene {
         p2_2_1.displayWidth = 80;
 
 
-        this.tweens.timeline({
-            targets: p2_2_1.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: 60, duration: 2000, ease: 'Stepped' },
-                { x: -60, duration: 2000, ease: 'Stepped' }
-
-            ]
-        });
 
         let p2_2_2 = this.physics.add.image(275 + 1180 * this.escenarios[1].pos, 580, "contplatform").setImmovable(true);
         p2_2_2.displayHeight = 20;
         p2_2_2.displayWidth = 80;
 
 
-        this.tweens.timeline({
-            targets: p2_2_2.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -80, duration: 1200, ease: 'Stepped' },
-                { x: 80, duration: 1200, ease: 'Stepped' }
 
-            ]
-        });
 
         let p2_2_3 = this.physics.add.image(75 + 1180 * this.escenarios[1].pos, 510, "contplatform").setImmovable(true);
         p2_2_3.displayHeight = 20;
@@ -2486,15 +2482,7 @@ class Scene_play extends Phaser.Scene {
         p2_2_4.displayHeight = 20;
         p2_2_4.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p2_2_4.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: 70, duration: 1500, ease: 'Stepped' },
-                { x: -70, duration: 1500, ease: 'Stepped' }
 
-            ]
-        });
 
         let p2_2_5 = this.physics.add.image(390 + 1180 * this.escenarios[1].pos, 460, "contplatform").setImmovable(true);
         p2_2_5.displayHeight = 20;
@@ -2504,15 +2492,6 @@ class Scene_play extends Phaser.Scene {
         p2_2_6.displayHeight = 20;
         p2_2_6.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p2_2_6.body.velocity,
-            loop: -1,
-            tweens: [
-                { y: 40, duration: 2500, ease: 'Stepped' },
-                { y: -40, duration: 2500, ease: 'Stepped' }
-
-            ]
-        });
 
         let p2_2_7 = this.physics.add.image(610 + 1180 * this.escenarios[1].pos, 560, "contplatform").setImmovable(true);
         p2_2_7.displayHeight = 20;
@@ -2563,11 +2542,64 @@ class Scene_play extends Phaser.Scene {
 
         this.physics.add.collider(this.playerD, grupoP2_cont);
 
+        this.plataformasContadorP2[0] = p2_2_1;
+        this.plataformasContadorP2[1] = p2_2_2;
+        this.plataformasContadorP2[2] = p2_2_4;
+        this.plataformasContadorP2[3] = p2_2_6;
+
+        if (this.yo.side === 2) {
+
+            this.tweens.timeline({
+                targets: p2_2_1.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: 60, duration: 2000, ease: 'Stepped' },
+                    { x: -60, duration: 2000, ease: 'Stepped' }
+
+                ]
+            });
+
+            this.tweens.timeline({
+                targets: p2_2_2.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -80, duration: 1200, ease: 'Stepped' },
+                    { x: 80, duration: 1200, ease: 'Stepped' }
+
+                ]
+            });
+
+            this.tweens.timeline({
+                targets: p2_2_4.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: 70, duration: 1500, ease: 'Stepped' },
+                    { x: -70, duration: 1500, ease: 'Stepped' }
+
+                ]
+            });
+
+
+
+            this.tweens.timeline({
+                targets: p2_2_6.body.velocity,
+                loop: -1,
+                tweens: [
+                    { y: 40, duration: 2500, ease: 'Stepped' },
+                    { y: -40, duration: 2500, ease: 'Stepped' }
+
+                ]
+            });
+
+
+        }
+
+
 
     }
 
     crearPlataformasElectricidad1(that) {
-        var that_ = that;
+        var that_ = this;
 
         let p1_3_1 = this.physics.add.image(108 + 1180 * this.escenarios[3].pos, 300, "elecplatform").setImmovable(true);
         p1_3_1.displayHeight = 20;
@@ -2577,29 +2609,13 @@ class Scene_play extends Phaser.Scene {
         p1_3_2.displayHeight = 20;
         p1_3_2.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p1_3_2.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -30, y: 30, duration: 2200, ease: 'Stepped' },
-                { x: 30, y: -30, duration: 2200, ease: 'Stepped' }
 
-            ]
-        });
 
         let p1_3_3 = this.physics.add.image(190 + 1180 * this.escenarios[3].pos, 180, "elecplatform").setImmovable(true);
         p1_3_3.displayHeight = 20;
         p1_3_3.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p1_3_3.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -30, y: -30, duration: 2200, ease: 'Stepped' },
-                { x: 30, y: 30, duration: 2200, ease: 'Stepped' }
 
-            ]
-        });
 
         let p1_3_4 = this.physics.add.image(40 + 1180 * this.escenarios[3].pos, 115, "elecplatform").setImmovable(true);
         p1_3_4.displayHeight = 20;
@@ -2611,23 +2627,7 @@ class Scene_play extends Phaser.Scene {
         p1_3_5.displayHeight = 20;
         p1_3_5.displayWidth = 80;
 
-        this.tweens.timeline({
 
-            targets: p1_3_5.body.velocity,
-            loop: -1,
-            duration: 1000,
-
-            tweens: [
-                { x: { value: -100, ease: 'Sine.easeOut' }, y: { value: 0, ease: 'Sine.easeIn' } },
-                { x: { value: 0, ease: 'Sine.easeIn' }, y: { value: -100, ease: 'Sine.easeOut' } },
-                { x: { value: 100, ease: 'Sine.easeOut' }, y: { value: 0, ease: 'Sine.easeIn' } },
-                { x: { value: 0, ease: 'Sine.easeIn' }, y: { value: 100, ease: 'Sine.easeOut' } },
-
-            ],
-            onLoop: function () {
-                p1_3_5.body.reset(500 + 1180 * that_.escenarios[3].pos, 200);
-            }
-        });
 
         let p1_3_6 = this.physics.add.image(600 + 1180 * this.escenarios[3].pos, 150, "elecplatform").setImmovable(true);
         p1_3_6.displayHeight = 20;
@@ -2658,10 +2658,62 @@ class Scene_play extends Phaser.Scene {
 
         //Colisión plataformas electricidad
         this.physics.add.collider(this.playerU, grupoP1_elec);
+
+        this.plataformasElectricidadP1[0] = p1_3_2;
+        this.plataformasElectricidadP1[1] = p1_3_3;
+        this.plataformasElectricidadP1[2] = p1_3_5;
+
+
+
+        if (this.yo.side === 1) {
+            this.tweens.timeline({
+                targets: p1_3_2.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -30, y: 30, duration: 2200, ease: 'Stepped' },
+                    { x: 30, y: -30, duration: 2200, ease: 'Stepped' }
+
+                ]
+            });
+
+            this.tweens.timeline({
+                targets: p1_3_3.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -30, y: -30, duration: 2200, ease: 'Stepped' },
+                    { x: 30, y: 30, duration: 2200, ease: 'Stepped' }
+
+                ]
+            });
+
+
+            this.tweens.timeline({
+
+                targets: p1_3_5.body.velocity,
+                loop: -1,
+                duration: 1000,
+
+                tweens: [
+                    { x: { value: -100, ease: 'Sine.easeOut' }, y: { value: 0, ease: 'Sine.easeIn' } },
+                    { x: { value: 0, ease: 'Sine.easeIn' }, y: { value: -100, ease: 'Sine.easeOut' } },
+                    { x: { value: 100, ease: 'Sine.easeOut' }, y: { value: 0, ease: 'Sine.easeIn' } },
+                    { x: { value: 0, ease: 'Sine.easeIn' }, y: { value: 100, ease: 'Sine.easeOut' } },
+
+                ],
+                onLoop: function () {
+                    p1_3_5.body.reset(500 + 1180 * that_.escenarios[3].pos, 200);
+                }
+            });
+
+
+        }
+
+
+
     }
 
     crearPlataformasElectricidad2(that) {
-        var that_ = that;
+        var that_ = this;
 
         let p2_3_1 = this.physics.add.image(108 + 1180 * this.escenarios[3].pos, 660, "elecplatform").setImmovable(true);
         p2_3_1.displayHeight = 20;
@@ -2673,29 +2725,12 @@ class Scene_play extends Phaser.Scene {
         p2_3_2.displayHeight = 20;
         p2_3_2.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p2_3_2.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -30, y: 30, duration: 2200, ease: 'Stepped' },
-                { x: 30, y: -30, duration: 2200, ease: 'Stepped' }
-
-            ]
-        });
 
         let p2_3_3 = this.physics.add.image(190 + 1180 * this.escenarios[3].pos, 540, "elecplatform").setImmovable(true);
         p2_3_3.displayHeight = 20;
         p2_3_3.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p2_3_3.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -30, y: -30, duration: 2200, ease: 'Stepped' },
-                { x: 30, y: 30, duration: 2200, ease: 'Stepped' }
 
-            ]
-        });
 
         let p2_3_4 = this.physics.add.image(40 + 1180 * this.escenarios[3].pos, 475, "elecplatform").setImmovable(true);
         p2_3_4.displayHeight = 20;
@@ -2707,24 +2742,7 @@ class Scene_play extends Phaser.Scene {
         p2_3_5.displayHeight = 20;
         p2_3_5.displayWidth = 80;
 
-        this.tweens.timeline({
 
-            targets: p2_3_5.body.velocity,
-            loop: -1,
-            duration: 1000,
-
-            tweens: [
-                { x: { value: -100, ease: 'Sine.easeOut' }, y: { value: 0, ease: 'Sine.easeIn' } },
-                { x: { value: 0, ease: 'Sine.easeIn' }, y: { value: -100, ease: 'Sine.easeOut' } },
-                { x: { value: 100, ease: 'Sine.easeOut' }, y: { value: 0, ease: 'Sine.easeIn' } },
-                { x: { value: 0, ease: 'Sine.easeIn' }, y: { value: 100, ease: 'Sine.easeOut' } },
-
-            ],
-            onLoop: function () {
-                //p1_3_5.body.reset(500,115);
-                p2_3_5.body.reset(500 + 1180 * that_.escenarios[3].pos, 560);
-            }
-        });
 
         let p2_3_6 = this.physics.add.image(600 + 1180 * this.escenarios[3].pos, 510, "elecplatform").setImmovable(true);
         p2_3_6.displayHeight = 20;
@@ -2755,6 +2773,56 @@ class Scene_play extends Phaser.Scene {
 
         //Colisión plataformas electricidad
         this.physics.add.collider(this.playerD, grupoP2_elec);
+
+        this.plataformasElectricidadP2[0] = p2_3_2;
+        this.plataformasElectricidadP2[1] = p2_3_3;
+        this.plataformasElectricidadP2[2] = p2_3_5;
+
+        if (this.yo.side === 2) {
+
+            this.tweens.timeline({
+                targets: p2_3_2.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -30, y: 30, duration: 2200, ease: 'Stepped' },
+                    { x: 30, y: -30, duration: 2200, ease: 'Stepped' }
+
+                ]
+            });
+            this.tweens.timeline({
+                targets: p2_3_3.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -30, y: -30, duration: 2200, ease: 'Stepped' },
+                    { x: 30, y: 30, duration: 2200, ease: 'Stepped' }
+
+                ]
+            });
+            this.tweens.timeline({
+
+                targets: p2_3_5.body.velocity,
+                loop: -1,
+                duration: 1000,
+
+                tweens: [
+                    { x: { value: -100, ease: 'Sine.easeOut' }, y: { value: 0, ease: 'Sine.easeIn' } },
+                    { x: { value: 0, ease: 'Sine.easeIn' }, y: { value: -100, ease: 'Sine.easeOut' } },
+                    { x: { value: 100, ease: 'Sine.easeOut' }, y: { value: 0, ease: 'Sine.easeIn' } },
+                    { x: { value: 0, ease: 'Sine.easeIn' }, y: { value: 100, ease: 'Sine.easeOut' } },
+
+                ],
+                onLoop: function () {
+                    //p1_3_5.body.reset(500,115);
+                    p2_3_5.body.reset(500 + 1180 * that_.escenarios[3].pos, 560);
+                }
+            });
+
+        }
+
+
+
+
+
     }
 
     crearPlataformasLaboratorio1() {
@@ -2762,15 +2830,7 @@ class Scene_play extends Phaser.Scene {
         p1_4_1.displayHeight = 20;
         p1_4_1.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p1_4_1.body.velocity,
-            loop: -1,
-            tweens: [
-                { y: -40, duration: 3500, ease: 'Stepped' },
-                { y: 40, duration: 3500, ease: 'Stepped' }
 
-            ]
-        });
 
         let p1_4_2 = this.physics.add.image(745 + 1180 * this.escenarios[4].pos, 315, "labplatform").setImmovable(true);
         p1_4_2.displayHeight = 20;
@@ -2791,6 +2851,22 @@ class Scene_play extends Phaser.Scene {
         grupoP1_Lab.add(p1_4_4);
 
         this.physics.add.collider(this.playerU, grupoP1_Lab);
+
+
+        this.plataformasLaboratorioP1[0] = p1_4_1;
+
+        if (this.yo.side === 1) {
+            this.tweens.timeline({
+                targets: p1_4_1.body.velocity,
+                loop: -1,
+                tweens: [
+                    { y: -40, duration: 3500, ease: 'Stepped' },
+                    { y: 40, duration: 3500, ease: 'Stepped' }
+
+                ]
+            });
+        }
+
     }
 
     crearPlataformasLaboratorio2() {
@@ -2798,15 +2874,7 @@ class Scene_play extends Phaser.Scene {
         p2_4_1.displayHeight = 20;
         p2_4_1.displayWidth = 80;
 
-        this.tweens.timeline({
-            targets: p2_4_1.body.velocity,
-            loop: -1,
-            tweens: [
-                { y: -40, duration: 3500, ease: 'Stepped' },
-                { y: 40, duration: 3500, ease: 'Stepped' }
 
-            ]
-        });
 
         let p2_4_2 = this.physics.add.image(745 + 1180 * this.escenarios[4].pos, 675, "labplatform").setImmovable(true);
         p2_4_2.displayHeight = 20;
@@ -2828,6 +2896,22 @@ class Scene_play extends Phaser.Scene {
 
 
         this.physics.add.collider(this.playerD, grupoP2_Lab);
+
+        this.plataformasLaboratorioP2[0] = p2_4_1;
+
+
+        if (this.yo.side === 2) {
+            this.tweens.timeline({
+                targets: p2_4_1.body.velocity,
+                loop: -1,
+                tweens: [
+                    { y: -40, duration: 3500, ease: 'Stepped' },
+                    { y: 40, duration: 3500, ease: 'Stepped' }
+
+                ]
+            });
+        }
+
     }
 
     crearPlataformasNieve1() {
@@ -2837,15 +2921,7 @@ class Scene_play extends Phaser.Scene {
         p1_5_1.body.friction.x = 0.3;
 
 
-        this.tweens.timeline({
-            targets: p1_5_1.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: 60, duration: 1000, ease: 'Stepped' },
-                { x: -60, duration: 1000, ease: 'Stepped' }
 
-            ]
-        });
 
         let p1_5_2 = this.physics.add.image(300 + 1180 * this.escenarios[2].pos, 225, "snowplat").setImmovable(true);
         p1_5_2.displayHeight = 20;
@@ -2857,15 +2933,7 @@ class Scene_play extends Phaser.Scene {
         p1_5_3.displayWidth = 80;
         p1_5_3.body.friction.x = 0.3;
 
-        this.tweens.timeline({
-            targets: p1_5_3.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -70, duration: 1500, ease: 'Stepped' },
-                { x: 70, duration: 1500, ease: 'Stepped' }
 
-            ]
-        });
 
         let p1_5_4 = this.physics.add.image(595 + 1180 * this.escenarios[2].pos, 185, "snowplat").setImmovable(true);
         p1_5_4.displayHeight = 20;
@@ -2876,15 +2944,7 @@ class Scene_play extends Phaser.Scene {
         p1_5_5.displayWidth = 80;
         p1_5_5.body.friction.x = 0.2;
 
-        this.tweens.timeline({
-            targets: p1_5_5.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -95, duration: 2500, ease: 'Stepped' },
-                { x: 95, duration: 2500, ease: 'Stepped' }
 
-            ]
-        });
 
 
         let grupoP1_snow = this.add.group();
@@ -2895,6 +2955,47 @@ class Scene_play extends Phaser.Scene {
         grupoP1_snow.add(p1_5_5);
 
         this.physics.add.collider(this.playerU, grupoP1_snow);
+
+
+        this.plataformasNieveP1[0] = p1_5_1;
+        this.plataformasNieveP1[1] = p1_5_3;
+        this.plataformasNieveP1[2] = p1_5_5;
+
+
+        if (this.yo.side === 1) {
+            this.tweens.timeline({
+                targets: p1_5_1.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: 60, duration: 1000, ease: 'Stepped' },
+                    { x: -60, duration: 1000, ease: 'Stepped' }
+
+                ]
+            });
+
+            this.tweens.timeline({
+                targets: p1_5_3.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -70, duration: 1500, ease: 'Stepped' },
+                    { x: 70, duration: 1500, ease: 'Stepped' }
+
+                ]
+            });
+
+            this.tweens.timeline({
+                targets: p1_5_5.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -95, duration: 2500, ease: 'Stepped' },
+                    { x: 95, duration: 2500, ease: 'Stepped' }
+
+                ]
+            });
+        }
+
+
+
     }
 
     crearPlataformasNieve2() {
@@ -2904,15 +3005,7 @@ class Scene_play extends Phaser.Scene {
         p2_5_1.body.friction.x = 0.3;
 
 
-        this.tweens.timeline({
-            targets: p2_5_1.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: 60, duration: 1000, ease: 'Stepped' },
-                { x: -60, duration: 1000, ease: 'Stepped' }
 
-            ]
-        });
 
         let p2_5_2 = this.physics.add.image(300 + 1180 * this.escenarios[2].pos, 585, "snowplat").setImmovable(true);
         p2_5_2.displayHeight = 20;
@@ -2924,15 +3017,6 @@ class Scene_play extends Phaser.Scene {
         p2_5_3.displayWidth = 80;
         p2_5_3.body.friction.x = 0.3;
 
-        this.tweens.timeline({
-            targets: p2_5_3.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -70, duration: 1500, ease: 'Stepped' },
-                { x: 70, duration: 1500, ease: 'Stepped' }
-
-            ]
-        });
 
         let p2_5_4 = this.physics.add.image(595 + 1180 * this.escenarios[2].pos, 545, "snowplat").setImmovable(true);
         p2_5_4.displayHeight = 20;
@@ -2943,15 +3027,6 @@ class Scene_play extends Phaser.Scene {
         p2_5_5.displayWidth = 80;
         p2_5_5.body.friction.x = 0.2;
 
-        this.tweens.timeline({
-            targets: p2_5_5.body.velocity,
-            loop: -1,
-            tweens: [
-                { x: -95, duration: 2500, ease: 'Stepped' },
-                { x: 95, duration: 2500, ease: 'Stepped' }
-
-            ]
-        });
 
 
         let grupoP2_snow = this.add.group();
@@ -2962,12 +3037,53 @@ class Scene_play extends Phaser.Scene {
         grupoP2_snow.add(p2_5_5);
 
         this.physics.add.collider(this.playerD, grupoP2_snow);
+
+
+        this.plataformasNieveP2[0] = p2_5_1;
+        this.plataformasNieveP2[1] = p2_5_3;
+        this.plataformasNieveP2[2] = p2_5_5;
+
+        if (this.yo.side === 2) {
+            this.tweens.timeline({
+                targets: p2_5_1.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: 60, duration: 1000, ease: 'Stepped' },
+                    { x: -60, duration: 1000, ease: 'Stepped' }
+
+                ]
+            });
+
+            this.tweens.timeline({
+                targets: p2_5_3.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -70, duration: 1500, ease: 'Stepped' },
+                    { x: 70, duration: 1500, ease: 'Stepped' }
+
+                ]
+            });
+
+
+            this.tweens.timeline({
+                targets: p2_5_5.body.velocity,
+                loop: -1,
+                tweens: [
+                    { x: -95, duration: 2500, ease: 'Stepped' },
+                    { x: 95, duration: 2500, ease: 'Stepped' }
+
+                ]
+            });
+
+
+        }
+
+
+
     }
 
 
-
-
-
+    //#endregion
 
 
 
@@ -2989,7 +3105,7 @@ class Scene_play extends Phaser.Scene {
         this.playerD.body.setSize(this.playerD.width * 0.25, this.playerD.height, true)
         this.playerU.setGravityY(3000);
         this.playerD.setGravityY(3000);
-        this.empezar();
+        // ! this.empezar();
     }
 
 
@@ -3015,42 +3131,26 @@ class Scene_play extends Phaser.Scene {
         this.pararP1();
         this.end.player1 = true;
 
-        if (this.online) {
+
+        if (this.end.player1 === true && this.end.player2 === true) {
             this.borrarIntervalos();
-            this.yo.status = "win"
-            this.putPlayer(this.yo, () => {
-                this.scene.start("Victoria", {
-                    escena: null,
-                    soundManager: this.soundManager,
-                    ganador: 1,
-                    nameP1: this.playerU.name,
-                    nameP2: this.playerD.name,
-                    tiempoP1: this.tiempoFinalP1,
-                    tiempoP2: this.tiempoFinalP2,
-                    online: this.online
-                });
-
-            })
-
-        } else {
-
-            if (this.end.player1 === true && this.end.player2 === true) {
-                this.borrarIntervalos();
-
-                this.scene.start("Victoria", {
-                    escena: null,
-                    soundManager: this.soundManager,
-                    ganador: 2,
-                    nameP1: this.playerU.name,
-                    nameP2: this.playerD.name,
-                    tiempoP1: this.tiempoFinalP1,
-                    tiempoP2: this.tiempoFinalP2,
-                    online: this.online
-                });
+            if (this.online) {
+                this.handler.close();
             }
+            this.scene.start("Victoria", {
+                escena: null,
+                soundManager: this.soundManager,
+                ganador: 2,
+                nameP1: this.playerU.name,
+                nameP2: this.playerD.name,
+                tiempoP1: this.tiempoFinalP1,
+                tiempoP2: this.tiempoFinalP2,
+                online: this.online,
+                yo: this.yo,
+                lobby: this.lobby,
+
+            });
         }
-
-
         bandera.destroy();
         this.BP1.destroy();
     }
@@ -3059,39 +3159,24 @@ class Scene_play extends Phaser.Scene {
         console.log("bandera p2")
         this.pararP2();
         this.end.player2 = true;
-        if (this.online) {
-
+        if (this.end.player1 === true && this.end.player2 === true) {
             this.borrarIntervalos();
-            this.yo.status = "win"
-            this.putPlayer(this.yo, () => {
-                this.scene.start("Victoria", {
-                    escena: null,
-                    soundManager: this.soundManager,
-                    ganador: 2,
-                    nameP1: this.playerU.name,
-                    nameP2: this.playerD.name,
-                    tiempoP1: this.tiempoFinalP1,
-                    tiempoP2: this.tiempoFinalP2,
-                    online: this.online
-                });
-
-            })
-        } else {
-            if (this.end.player1 === true && this.end.player2 === true) {
-                this.borrarIntervalos();
-                this.scene.start("Victoria", {
-                    escena: null,
-                    soundManager: this.soundManager,
-                    ganador: 1,
-                    nameP1: this.playerU.name,
-                    nameP2: this.playerD.name,
-                    tiempoP1: this.tiempoFinalP1,
-                    tiempoP2: this.tiempoFinalP2,
-                    online: this.online
-                });
+            if (this.online) {
+                this.handler.close();
             }
+            this.scene.start("Victoria", {
+                escena: null,
+                soundManager: this.soundManager,
+                ganador: 1,
+                nameP1: this.playerU.name,
+                nameP2: this.playerD.name,
+                tiempoP1: this.tiempoFinalP1,
+                tiempoP2: this.tiempoFinalP2,
+                online: this.online,
+                yo: this.yo,
+                lobby: this.lobby
+            });
         }
-
         bandera.destroy();
         this.BP2.destroy();
     }
@@ -3099,18 +3184,47 @@ class Scene_play extends Phaser.Scene {
 
 
     funcionOverlapP1() {
-        if (this.keyboardP1.E.isDown === true && !this.escenasActivas[0]) {
+        if (this.keyboardP1.E.isDown === true && !this.escenasActivas[0] && this.yo.side === 1) {
+
+            var msg = {
+                tipo: "BOTONES",
+                w: false,
+                a: false,
+                side: 1,
+                d: false,
+                e: true,
+                touching: false
+            }
+            this.handler.send(JSON.stringify(msg));
             return true
-        } else {
+        } else if (this.yo.side === 2 && this.Eauxiliar === true) {
+            this.Eauxiliar = false;
+            return true;
+        }
+        else {
             return false
         }
 
     }
 
     funcionOverlapP2() {
-        if (this.keyboardP2.SPACE.isDown === true && !this.escenasActivas[1]) {
+        if (this.keyboardP1.E.isDown === true && !this.escenasActivas[1] && this.yo.side === 2) {
+            var msg = {
+                tipo: "BOTONES",
+                w: false,
+                a: false,
+                side: 2,
+                d: false,
+                e: true,
+                touching: false
+            }
+            this.handler.send(JSON.stringify(msg));
             return true
-        } else {
+        } else if (this.yo.side === 1 && this.Eauxiliar === true) {
+            this.Eauxiliar = false;
+            return true;
+        }
+        else {
             return false
         }
 
@@ -3146,11 +3260,15 @@ class Scene_play extends Phaser.Scene {
             //Si el servidor no está disponible, borramos todos los intervalos de tiempo establecidos
             this.borrarIntervalos();
             alert("Los servidores no se encuentran disponibles, volviendo al menú principal");
+            this.online = false;
+            if (this.handler.readyState === 1)
+                this.handler.close();
             //borramos el nombre, el estado, los ids y las posiciones del JSON, y devolvemos al jugador al menú principal
             this.yo.user = "";
             this.yo.status = "";
             this.yo.id = 0;
             this.yo.side = 0;
+            this.cerrarEscenas();
             this.scene.start("MAINMENU", { escena: null, soundManager: this.soundManager });
         })
 
@@ -3177,10 +3295,15 @@ class Scene_play extends Phaser.Scene {
             this.borrarIntervalos();
             alert("Los servidores no se encuentran disponibles, volviendo al menú principal");
             //borramos el nombre, el estado, los ids y las posiciones del JSON, y devolvemos al jugador al menú principal
+            // ? Desconectamos del socket
+            this.online = false;
+            if (this.handler.readyState === 1)
+                this.handler.close();
             this.yo.user = "";
             this.yo.status = "";
             this.yo.id = 0;
             this.yo.side = 0;
+            this.cerrarEscenas();
             this.scene.start("MAINMENU", { escena: null, soundManager: this.soundManager });
         })
     }
@@ -3190,15 +3313,31 @@ class Scene_play extends Phaser.Scene {
         if (players[0].status === "" || players[0].status === "disconected" || players[0].status === null) {
             this.borrarIntervalos();
 
-            this.yo.user = "";
-            this.yo.status = "";
-            this.yo.id = 0;
-            this.yo.side = 0;
+            let player=new Object();
+            player.user = this.yo.user ;
+            player.status = this.yo.status ;
+            player.id = this.yo.id ;
+            player.side = this.yo.side ;
+
+
+            //! Se ha caido un jugador
+
+            // ? Desconectamos del socket
+            this.online = false;
+            if (this.handler.readyState === 1)
+                this.handler.close();
+
+
+            // this.yo.user = "";
+            // this.yo.status = "";
+            // this.yo.id = 0;
+            // this.yo.side = 0;
             alert("Player 1 desconectado, volviendo al menu principal");
-            this.eliminarUsuario(this.yo, () => {
-                this.yo = null;
+            this.eliminarUsuario(player, () => {
+                // this.yo = null;
                 this.eliminarUsuario(players[1], () => {
                     console.log("borrados")
+                    this.cerrarEscenas();
                     this.scene.start("MAINMENU", { escena: null, soundManager: this.soundManager });
                 })
             })
@@ -3207,21 +3346,31 @@ class Scene_play extends Phaser.Scene {
         if (players[1].status === "" || players[1].status === "disconected" || players[1].status === null) {
             this.borrarIntervalos();
 
-            this.yo.user = "";
-            this.yo.status = "";
-            this.yo.id = 0;
-            this.yo.side = 0;
+
+            // ? Desconectamos del socket
+            this.online = false;
+            if (this.handler.readyState === 1)
+                this.handler.close();
+
+
+            // this.yo.user = "";
+            // this.yo.status = "";
+            // this.yo.id = 0;
+            // this.yo.side = 0;
             alert("Player 2 desconectado, volviendo al menu principal");
-            this.eliminarUsuario(this.yo, () => {
-                this.yo = null;
+            this.eliminarUsuario(player, () => {
+                // this.yo = null;
                 this.eliminarUsuario(players[0], () => {
                     console.log("borrados")
+                    this.cerrarEscenas();
                     this.scene.start("MAINMENU", { escena: null, soundManager: this.soundManager });
                 })
             })
             return
         }
 
+
+        //! esto en teoria ya no se tiene que ejecutar esto era antes de WS
         if (players[0].status === "win") {
             this.borrarIntervalos();
             console.log(players)
@@ -3249,6 +3398,7 @@ class Scene_play extends Phaser.Scene {
             this.yo.status = "";
             this.yo.id = 0;
             this.yo.side = 0;
+
             alert("Player 2 ya ha llegado a la meta, volviendo al menu principal");
             this.eliminarUsuario(players[1], () => {
                 this.yo = null;
@@ -3277,286 +3427,445 @@ class Scene_play extends Phaser.Scene {
         player.id = 0;
         this.putPlayer(player, callback)
 
-
     }
 
-    playerPulseMnj() {
-        var that = this; //console.log("HOOOOOOLAAa?22222222??")
-        this.playerPulse.onmessage = function (msg) {
-            //console.log("PlayerPulse")
-            var message = JSON.parse(msg.data)
-            //console.log(message)
-            if (message.side === 1) {
-                //console.log("Personaje 1??")
-                // Personaje 1
-                if (!that.escenasActivas[0]) {
+    playerPulseMnj(message) {
+        var that = this;
 
-                    if (message.w === true && message.touching) {
-                        that.playerU.setVelocityY(-750); //cambiar para que salte menos y poder bajar plataformas
+        if (message.side === 1) {
 
-                    }
+            if (!that.escenasActivas[0]) {
 
-                    if (message.a === true) {
-                        that.playerU.body.setVelocityX(-that.playerU.velocidad);
-                        if (message.touching) {
-                            that.playerU.anims.play("CorrerIzquierdaP1", true);
-                        } else {
-                            that.playerU.anims.play("SaltoIzquierdaP1", true);
-                        }
+                if (message.w === true && message.touching) {
+                    that.playerU.setVelocityY(-750);
 
-                    }
-                    if (message.d === true) {
-                        that.playerU.body.setVelocityX(that.playerU.velocidad);
-                        if (message.touching) {
-                            that.playerU.anims.play("CorrerDerechaP1", true);
-                        } else {
-                            that.playerU.anims.play("SaltoDerechaP1", true);
-                        }
-                    }
+                }
 
-                    if (message.d === false && message.a === false && message.w === false) {
-                        if (that.playerU.body.velocity.x > 0) {
-                            that.playerU.anims.stop();
-                            that.playerU.anims.play("IdleDerechaP1", true);
-                        }
-                        if (that.playerU.body.velocity.x < 0) {
-                            that.playerU.anims.stop();
-                            that.playerU.anims.play("IdleIzquierdaP1", true);
-                        }
-                        that.playerU.body.setVelocityX(0);
+                if (message.a === true) {
+                    that.playerU.body.setVelocityX(-that.playerU.velocidad);
+                    if (message.touching) {
+                        that.playerU.anims.play("CorrerIzquierdaP1", true);
+                    } else {
+                        that.playerU.anims.play("SaltoIzquierdaP1", true);
                     }
 
                 }
-            } else if (message.side === 2) {
-                if (!that.escenasActivas[1]) {
-                    if (message.w === true && message.touching) {
-                        that.playerD.setVelocityY(-750); //cambiar para que salte menos y poder bajar plataformas
-
-                    }
-
-                    if (message.a === true) {
-                        that.playerD.body.setVelocityX(-that.playerD.velocidad);
-                        if (message.touching) {
-                            that.playerD.anims.play("CorrerIzquierdaP2", true);
-                        } else {
-                            that.playerD.anims.play("SaltoIzquierdaP2", true);
-                        }
-
-                    }
-                    if (message.d === true) {
-                        that.playerD.body.setVelocityX(that.playerD.velocidad);
-                        if (message.touching) {
-                            that.playerD.anims.play("CorrerDerechaP2", true);
-                        } else {
-                            that.playerD.anims.play("SaltoDerechaP2", true);
-                        }
-                    }
-
-                    if (message.d === false && message.a === false && message.w === false) {
-                        if (that.playerD.body.velocity.x > 0) {
-                            that.playerD.anims.stop();
-                            that.playerD.anims.play("IdleDerechaP2", true);
-                        }
-                        if (that.playerD.body.velocity.x < 0) {
-                            that.playerD.anims.stop();
-                            that.playerD.anims.play("IdleIzquierdaP2", true);
-                        }
-                        that.playerD.body.setVelocityX(0);
+                if (message.d === true) {
+                    that.playerU.body.setVelocityX(that.playerU.velocidad);
+                    if (message.touching) {
+                        that.playerU.anims.play("CorrerDerechaP1", true);
+                    } else {
+                        that.playerU.anims.play("SaltoDerechaP1", true);
                     }
                 }
-            }
 
-            /*
-            if (message.side === "1") {
-                console.log("modificando")
-                let x = parseFloat(message.x);
-                let y = parseFloat(message.y);
-                if (x > that.playerU.x) {
-                    that.playerU.anims.play("CorrerDerechaP1", true);
-
-                } else if (x === that.playerU.x) {
-                    that.playerU.anims.play("IdleDerechaP1", true);
-                } else if (x < that.playerU.x) {
-                    console.log("pa la izquierda")
-                    console.log("pa la izquierda")
-                    console.log("pa la izquierda")
-                    that.playerU.anims.play("IdleIzquierdaP1", true);
+                if (message.d === false && message.a === false && message.w === false) {
+                    if (that.playerU.body.velocity.x > 0) {
+                        that.playerU.anims.stop();
+                        that.playerU.anims.play("IdleDerechaP1", true);
+                    }
+                    if (that.playerU.body.velocity.x < 0) {
+                        that.playerU.anims.stop();
+                        that.playerU.anims.play("IdleIzquierdaP1", true);
+                    }
+                    that.playerU.body.setVelocityX(0);
                 }
-                that.playerU.x = x;
-                console.log(that.playerU.x);
-                that.playerU.y = y;
-            }//*/
-        }
-    }
-    PlayerPositionMnj() {
-        var that = this; //console.log("HOOOOOO3223LAAa?22222222??")
-        this.playerPosition.onmessage = function (msg) {
-            //console.log("PlayerPosition")
-            var message = JSON.parse(msg.data)
-            //console.log(message)
-            if (message.side === 1) {
+                if (message.e === true) {
 
-                // Personaje 1
-                if (!that.escenasActivas[0]) {
-                    // console.log("Cambiando posicion")
-                    // console.log("x: " + message.x);
-                    //console.log("y: " + message.y);
-                    that.playerU.x = message.x;
-                    that.playerU.y = message.y;
-                }
-            } else if (message.side === 2) {
-                if (!that.escenasActivas[1]) {
-                    // console.log("Cambiando posicion P2")
-                    // console.log("x: " + message.x);
-                    //console.log("y: " + message.y);
-                    that.playerD.x = message.x;
-                    that.playerD.y = message.y;
-                }
-            }
-
-
-
-
-
-
-        }
-
-    }
-    gameEventMnj() {
-        var that = this; //console.log("HOOOOOO3223LAAa?22222222??")
-        this.gameEvent.onmessage = function (msg) {
-            //console.log("gameEvent!!")
-            var message = JSON.parse(msg.data)
-            //console.log(message)
-
-
-            // Personaje 1
-            if (message.portal !== "null") {
-
-                //Player 1
-                if (message.portal === "gimansioP1") {
-
-                    that.crearPortalGimnasioP1();
-
-                    that.escenarios[0].completadoP1U = true;
-                    that.PCU.tint.onChange(0xE74C3C)
-                } else if (message.portal === "contadorP1") {
-                    that.escenarios[1].completadoP1U = true;
-                    that.crearPortalPulsadorP1();
-                } else if (message.portal === "electricidadP1") {
-                    that.escenarios[3].completadoP1U = true;
-                    that.crearPortalElectricidadP1();
-                    that.PEPU.tint.onChange(0xE74C3C)
-                } else if (message.portal === "laboratorioP1") {
-                    that.crearPortalLaboratorioP1();
-                    that.escenarios[4].completadoP1U = true;
-                    that.LP1.destroy();
-                    that.particlesLPU.destroy()
-                }
-                //Player 2
-                else if (message.portal === "gimansioP2") {
-                    thata.escenarios[0].completadoP2U = true;
-                    that.crearPortalGimnasioP2();
-                    that.PCD.tint.onChange(0xE74C3C)
-                } else if (message.portal === "contadorP2") {
-                    that.escenarios[1].completadoP2U = true;
-                    that.crearPortalPulsadorP2();
-                } else if (message.portal === "electricidadP2") {
-                    that.escenarios[3].completadoP2U = true;
-                    that.crearPortalElectricidadP2();
-                    that.PEPD.tint.onChange(0xE74C3C)
-                } else if (message.portal === "laboratorioP2") {
-                    that.crearPortalLaboratorioP2();
-                    that.escenarios[4].completadoP2U = true;
-                    that.LP2.destroy();
-                    that.particlesLPD.destroy()
-                }
-
-            }
-            if (message.teletransporte !== "null") {
-
-                let pos = parseInt(message.teletransporte);
-                console.log("Pos : " + pos + " || Mensaje pos: " + message.teletransporte);
-                if (that.yo.side === 1) {
-                    that.teletransporte(that.playerD, pos, that.cam2, true);
+                    that.Eauxiliar = true;
                 } else {
-                    that.teletransporte(that.playerU, pos, that.cam1, true);
+                    that.Eauxiliar = false;
                 }
 
 
             }
+        } else if (message.side === 2) {
+            if (!that.escenasActivas[1]) {
+                if (message.w === true && message.touching) {
+                    that.playerD.setVelocityY(-750); //cambiar para que salte menos y poder bajar plataformas
 
-            if (message.powerUp !== "null") {
-                //Player 1
-                if (message.powerUp === "rayosD") {
-
-                    that.crearRayosP1();
-                    that.escenarios[0].completadoP1D = true;
-                    that.particlesCPU.destroy()
-                    that.CP1.destroy()
-
-
-                } else if (message.powerUp === "masP1") {
-                    that.crearMasTP1();
-                } else if (message.powerUp === "blindP1") {
-                    that.crearBlindP1();
-                    that.escenarios[3].completadoP1D = true;
-                    that.particlesEPU.destroy()
-                    that.escena.EP1.destroy();
                 }
-                //Player 2
-                else if (message.powerUp === "rayosU") {
-                    that.crearRayosP2();
-                    that.escenarios[0].completadoP2D = true;
-                    that.particlesCPD.destroy()
-                    that.CP2.destroy()
 
-                } else if (message.powerUp === "masP2") {
-                    that.crearMasTP2();
-                } else if (message.powerUp === "blindP2") {
-                    that.crearBlindP1();
-                    that.escenarios[3].completadoP2D = true;
-                    that.particlesEPD.destroy()
-                    that.escena.EP2.destroy();
+                if (message.a === true) {
+                    that.playerD.body.setVelocityX(-that.playerD.velocidad);
+                    if (message.touching) {
+                        that.playerD.anims.play("CorrerIzquierdaP2", true);
+                    } else {
+                        that.playerD.anims.play("SaltoIzquierdaP2", true);
+                    }
+
                 }
+                if (message.d === true) {
+                    that.playerD.body.setVelocityX(that.playerD.velocidad);
+                    if (message.touching) {
+                        that.playerD.anims.play("CorrerDerechaP2", true);
+                    } else {
+                        that.playerD.anims.play("SaltoDerechaP2", true);
+                    }
+                }
+
+                if (message.d === false && message.a === false && message.w === false) {
+                    if (that.playerD.body.velocity.x > 0) {
+                        that.playerD.anims.stop();
+                        that.playerD.anims.play("IdleDerechaP2", true);
+                    }
+                    if (that.playerD.body.velocity.x < 0) {
+                        that.playerD.anims.stop();
+                        that.playerD.anims.play("IdleIzquierdaP2", true);
+                    }
+                    that.playerD.body.setVelocityX(0);
+                }
+
+                if (message.e === true) {
+
+                    that.Eauxiliar = true;
+                } else {
+                    that.Eauxiliar = false;
+                }
+
             }
+        }
+
+
+    }
+
+
+    PlayerPositionMnj(message) {
+        var that = this;
+        if (message.side === 1) {
+            //console.log(message)
+            // Personaje 1
+            if (!that.escenasActivas[0]) {
+                that.playerU.x = message.x;
+                that.playerU.y = message.y;
+            }
+        } else if (message.side === 2) {
+            if (!that.escenasActivas[1]) {
+                that.playerD.x = message.x;
+                that.playerD.y = message.y;
+            }
+        }
+
+    }
+
+
+    gameEventMnj(message) {
+        var that = this;
+        if (message.portal !== "null") {
+
+            //Player 1
+            if (message.portal === "gimansioP1") {
+
+                that.crearPortalGimnasioP1();
+
+                that.escenarios[0].completadoP1U = true;
+                that.PCU.tint.onChange(0xE74C3C)
+            } else if (message.portal === "contadorP1") {
+                that.escenarios[1].completadoP1U = true;
+                that.crearPortalPulsadorP1();
+            } else if (message.portal === "electricidadP1") {
+                that.escenarios[3].completadoP1U = true;
+                that.crearPortalElectricidadP1();
+                that.PEPU.tint.onChange(0xE74C3C)
+            } else if (message.portal === "laboratorioP1") {
+                that.crearPortalLaboratorioP1();
+                that.escenarios[4].completadoP1U = true;
+                that.LP1.destroy();
+                that.particlesLPU.destroy()
+            }
+            //Player 2
+            else if (message.portal === "gimansioP2") {
+                that.escenarios[0].completadoP2U = true;
+                that.crearPortalGimnasioP2();
+                that.PCD.tint.onChange(0xE74C3C)
+            } else if (message.portal === "contadorP2") {
+                that.escenarios[1].completadoP2U = true;
+                that.crearPortalPulsadorP2();
+            } else if (message.portal === "electricidadP2") {
+                that.escenarios[3].completadoP2U = true;
+                that.crearPortalElectricidadP2();
+                that.PEPD.tint.onChange(0xE74C3C)
+            } else if (message.portal === "laboratorioP2") {
+                that.crearPortalLaboratorioP2();
+                that.escenarios[4].completadoP2U = true;
+                that.LP2.destroy();
+                that.particlesLPD.destroy()
+            }
+
+        }
+        if (message.teletransporte !== "null") {
+
+            let pos = parseInt(message.teletransporte);
+            console.log("Pos : " + pos + " || Mensaje pos: " + message.teletransporte);
+            if (that.yo.side === 1) {
+                that.teletransporteD(that.playerD, pos, that.cam2, true);
+            } else {
+                that.teletransporte(that.playerU, pos, that.cam1, true);
+            }
+
+
+        }
+        if (message.powerUp !== "null") {
+            //Player 1
+            if (message.powerUp === "rayosD") {
+
+                that.crearRayosP1();
+                that.escenarios[0].completadoP1D = true;
+                that.particlesCPU.destroy()
+                that.CP1.destroy()
+
+
+            } else if (message.powerUp === "masP1") {
+                that.crearMasTP1();
+            } else if (message.powerUp === "blindP1") {
+                that.crearBlindP1();
+                that.escenarios[3].completadoP1D = true;
+                that.particlesEPU.destroy()
+                that.escena.EP1.destroy();
+            }
+            //Player 2
+            else if (message.powerUp === "rayosU") {
+                that.crearRayosP2();
+                that.escenarios[0].completadoP2D = true;
+                that.particlesCPD.destroy()
+                that.CP2.destroy()
+
+            } else if (message.powerUp === "masP2") {
+                that.crearMasTP2();
+            } else if (message.powerUp === "blindP2") {
+                that.crearBlindP1();
+                that.escenarios[3].completadoP2D = true;
+                that.particlesEPD.destroy()
+                that.escena.EP2.destroy();
+            }
+
+
+
+
 
 
 
         }
     }
+
+
+    adjustplatforms(message) {
+        var that = this;
+        if (this.yo.side === 2) {
+            let plataformas = message.arrayPlatforms;
+            let escenario = message.escenario;
+            let tam = this.escenarios[escenario].plataformasP1.length;
+            // console.log("Plataformas ", plataformas)
+            // console.log("Escenario ", escenario)
+            // console.log("tam ", tam)
+            // console.log("Actualizando plataformas de p1 en P2")
+            if (this.ultimaActualizacionPlataforma !== escenario) {
+                console.log("Cambio de escenario!!!!!!! ");
+                let tama = this.escenarios[this.ultimaActualizacionPlataforma].plataformasP1.length;
+                for (let i = 0; i < tama; i++) {
+
+                    this.escenarios[this.ultimaActualizacionPlataforma].plataformasP1[i].x = 0;
+                    this.escenarios[this.ultimaActualizacionPlataforma].plataformasP1[i].y = 0;
+                    this.escenarios[this.ultimaActualizacionPlataforma].plataformasP1[i].body.velocity.x = 0;
+                    this.escenarios[this.ultimaActualizacionPlataforma].plataformasP1[i].body.velocity.y = 0;
+                }
+
+                this.ultimaActualizacionPlataforma = escenario;
+            }
+            for (let i = 0; i < tam; i++) {
+                let j = i * 3;
+                this.escenarios[escenario].plataformasP1[i].x = plataformas[j];
+                this.escenarios[escenario].plataformasP1[i].y = plataformas[j + 1];
+                this.escenarios[escenario].plataformasP1[i].body.velocity.x = plataformas[j + 2].x;
+                this.escenarios[escenario].plataformasP1[i].body.velocity.y = plataformas[j + 2].y;
+            }
+        } else {
+            let plataformas = message.arrayPlatforms;
+            let escenario = message.escenario;
+            let tam = this.escenarios[escenario].plataformasP1.length;
+            if (this.ultimaActualizacionPlataforma !== escenario) {
+                console.log("Cambio de escenario!!!!!!! ");
+                let tama = this.escenarios[this.ultimaActualizacionPlataforma].plataformasP1.length;
+                for (let i = 0; i < tama; i++) {
+
+                    this.escenarios[this.ultimaActualizacionPlataforma].plataformasP2[i].x = 0;
+                    this.escenarios[this.ultimaActualizacionPlataforma].plataformasP2[i].y = 0;
+                    this.escenarios[this.ultimaActualizacionPlataforma].plataformasP2[i].body.velocity.x = 0;
+                    this.escenarios[this.ultimaActualizacionPlataforma].plataformasP2[i].body.velocity.y = 0;
+                }
+
+                this.ultimaActualizacionPlataforma = escenario;
+            }
+            for (let i = 0; i < tam; i++) {
+                let j = i * 3;
+                this.escenarios[escenario].plataformasP2[i].x = plataformas[j];
+                this.escenarios[escenario].plataformasP2[i].y = plataformas[j + 1];
+                this.escenarios[escenario].plataformasP2[i].body.velocity.x = plataformas[j + 2].x;
+                this.escenarios[escenario].plataformasP2[i].body.velocity.y = plataformas[j + 2].y;
+            }
+        }
+
+
+    }
+
+
+
+    onMensajeHandler() {
+        var that = this;
+        this.handler.onmessage = function (msg) {
+            var message = JSON.parse(msg.data)
+            if (message.tipo != "POSICION" && message.tipo != "EVENTOS" && message.tipo != "BOTONES") {
+                //console.log("message, AAAAAAA " + message.tipo, message);
+            }
+
+
+            if (message.tipo === "POSICION") {
+                that.PlayerPositionMnj(message);
+            } else if (message.tipo === "BOTONES") {
+                that.playerPulseMnj(message);
+            } else if (message.tipo === "EVENTOS") {
+                that.gameEventMnj(message);
+            } else if (message.tipo === "CREAR") {
+                that.crearPlataformasGimnasioP1();
+                that.crearPlataformasGimnasioP2();
+                that.crearPlataformasContador1();
+                that.crearPlataformasContador2();
+                that.crearPlataformasElectricidad1();
+                that.crearPlataformasElectricidad2();
+                that.crearPlataformasLaboratorio1();
+                that.crearPlataformasLaboratorio2();
+                that.crearPlataformasNieve1();
+                that.crearPlataformasNieve2();
+
+                that.escenarios[0].plataformasP1 = that.plataformasGimnasioP1;
+                that.escenarios[0].plataformasP2 = that.plataformasGimnasioP2;
+                that.escenarios[1].plataformasP1 = that.plataformasContadorP1;
+                that.escenarios[1].plataformasP2 = that.plataformasContadorP2;
+                that.escenarios[2].plataformasP1 = that.plataformasNieveP1;
+                that.escenarios[2].plataformasP2 = that.plataformasNieveP2;
+                that.escenarios[3].plataformasP1 = that.plataformasElectricidadP1;
+                that.escenarios[3].plataformasP2 = that.plataformasElectricidadP2;
+                that.escenarios[4].plataformasP1 = that.plataformasLaboratorioP1;
+                that.escenarios[4].plataformasP2 = that.plataformasLaboratorioP2;
+
+
+
+                that.empezar();
+                that.loading1BG.destroy();
+                that.loading2BG.destroy();
+                
+            } else if (message.tipo = "PLATFORM") {
+                //console.log("LO QUE ME LLEGÓ", message);
+                that.adjustplatforms(message);
+            }
+
+        }
+
+
+    }
+
+
+
+    habilitarPausa(){
+        console.log("vamos a activar la pausa")
+        setTimeout(()=>{this.ActivarPausa=true},300)
+    
+    }
+
+
+    cerrarEscenas() {
+        if (this.game.scene.isActive("CintaP1")) {
+            this.game.scene.stop("CintaP1");
+
+        }
+        if (this.game.scene.isActive("CintaP1V2")) {
+            this.game.scene.stop("CintaP1V2");
+
+        }
+        if (this.game.scene.isActive("ContadorP1")) {
+            this.game.scene.stop("ContadorP1");
+
+        }
+        if (this.game.scene.isActive("ElectricidadP1")) {
+            this.game.scene.stop("ElectricidadP1");
+
+        }
+        if (this.game.scene.isActive("ElectricidadP1V2")) {
+            this.game.scene.stop("ElectricidadP1V2");
+            this.blurElectricidadU.alpha = 0;
+        }
+        if (this.game.scene.isActive("LaboratorioP1")) {
+            this.game.scene.stop("LaboratorioP1");
+
+        }
+        if (this.game.scene.isActive("CintaP2")) {
+            this.game.scene.stop("CintaP2");
+
+        }
+        if (this.game.scene.isActive("CintaP2V2")) {
+            this.game.scene.stop("CintaP2V2");
+
+        }
+        if (this.game.scene.isActive("ContadorP2")) {
+            this.game.scene.stop("ContadorP2");
+
+        }
+        if (this.game.scene.isActive("ElectricidadP2")) {
+            this.game.scene.stop("ElectricidadP2");
+
+        }
+        if (this.game.scene.isActive("ElectricidadP2V2")) {
+            this.game.scene.stop("ElectricidadP2V2");
+
+        }
+        if (this.game.scene.isActive("LaboratorioP2")) {
+            this.game.scene.stop("LaboratorioP2");
+
+        }
+        if (this.game.scene.isActive("CintaTP1")) {
+            this.game.scene.stop("CintaTP1");
+
+        }
+        if (this.game.scene.isActive("CintaTP2")) {
+            this.game.scene.stop("CintaTP2");
+
+        }
+        if (this.game.scene.isActive("ContadorTP1")) {
+            this.game.scene.stop("ContadorTP1");
+
+        }
+        if (this.game.scene.isActive("ContadorTP2")) {
+            this.game.scene.stop("ContadorTP2");
+
+        }
+        if (this.game.scene.isActive("ElectricidadTP1")) {
+            this.game.scene.stop("ElectricidadTP1");
+
+        }
+        if (this.game.scene.isActive("ElectricidadTP2")) {
+            this.game.scene.stop("ElectricidadTP2");
+
+        }
+        if (this.game.scene.isActive("LaboratorioTP1")) {
+            this.game.scene.stop("LaboratorioTP1");
+
+        }
+        if (this.game.scene.isActive("LaboratorioTP2")) {
+            this.game.scene.stop("LaboratorioTP2");
+
+        }
+        this.escenasActivas[0] = false;
+        this.escenasActivas[1] = false;
+
+    }
+
+
+
+
 
 
 }
 
 
 
-
-
-
-/*
-  var particles = this.add.particles('snowFlake')
-  particles.depth = -10
- 
-  var xd = particles.createEmitter({
-      x: this.game.canvas.width / 2,
-      y: -150,
-      lifespan: 8000,
-      speedX: { min: -this.game.canvas.width / 2, max: this.game.canvas.width / 2 },
-      speedY: { min: +100, max: +150, steps: 1 },
-      scale: { start: 0.1, end: 0 },
-      blendMode: 'ADD'
-  });
- 
-  window.xd = xd;
-  //*/
-
-
-
-
-
-
-
-
-
-export default Scene_play;
+export default Scene_play_Online;

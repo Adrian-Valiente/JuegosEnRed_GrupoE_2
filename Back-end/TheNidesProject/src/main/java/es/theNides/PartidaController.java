@@ -68,27 +68,6 @@ public class PartidaController {
 						p2.setStatus("connected");
 					}
 				}
-				if(p1.getStatus()!=null) {
-					if(p1.getStatus().equals("disconected")) {
-						p1.setUser("");
-						p1.setId(0);
-						p1.setSide(0);
-						p1.setLobby("");
-					
-					}
-				}
-				if(p2.getStatus()!=null) {
-					if(p2.getStatus().equals("disconected")) {
-						p2.setUser("");
-						p2.setId(0);
-						p2.setSide(0);
-						p2.setLobby("");
-					
-					}
-				}
-			
-				
-				
 
 				// fin
 				juegos[i].setP1(p1);
@@ -365,7 +344,7 @@ public class PartidaController {
 	@PostConstruct
 	public void start() {
 		crearPartidas();
-		myTimer.scheduleAtFixedRate(task, 10000, 10000);
+		myTimer.scheduleAtFixedRate(task, 30000, 30000);
 	}
 
 }

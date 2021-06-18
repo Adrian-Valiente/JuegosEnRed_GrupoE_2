@@ -4,11 +4,9 @@ rer (10 : 14) - eqweq
 eqw (10 : 14) - wqeqw
 eqw (10 : 14) - eee
 rer (10 : 14) - www
-qwe (10 : 29) - awd
-dqwd (10 : 30) - dwe
-dwq (10 : 51) - ew
-eqwe (10 : 51) - ee
-dwedwe (11 : 40) - qwe
-weqwq (11 : 40) - www
-dqwdqw (11 : 40) - qwe
-qwe (11 : 41) - wwwww
+adssada (10 : 25) - aa
+dddd (10 : 25) - jajaa
+adssada (10 : 25) - no entiendo
+dddd (10 : 25) - que pasa
+adssada (10 : 26) - holaaa
+aa (10 : 28) - adadadad

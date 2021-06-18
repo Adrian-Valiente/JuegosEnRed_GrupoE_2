@@ -18,17 +18,14 @@ public class TheNidesProjectApplication implements WebSocketConfigurer {
 		registry.addHandler(playerPulse(), "/Lobby_3").setAllowedOrigins("*");
 		registry.addHandler(playerPulse(), "/Lobby_4").setAllowedOrigins("*");
 		registry.addHandler(playerPulse(), "/Lobby_5").setAllowedOrigins("*");
-		//registry.addHandler(Lobby1(), "/Lobby_1").setAllowedOrigins("*");
+		
 	}
 
 	private WebSocketHandler playerPulse() {
 
 		return new Handler();
 	}
-	private WebSocketHandler Lobby1() {
-
-		return new Lobby1();
-	}
+	
 
 
 

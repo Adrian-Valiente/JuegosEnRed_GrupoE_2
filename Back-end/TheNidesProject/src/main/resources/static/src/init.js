@@ -1,5 +1,6 @@
 import Bootloader from './bootloader.js';
 import Scene_play from './scenes/scene_play.js'
+import Scene_play_Online from './scenes/scene_play_Online.js'
 import mainMenu from './scenes/mainMenu.js';
 import CintaP1 from './scenes/CintaP1.js';
 import CintaP1V2 from './scenes/CintaP1V2.js';
@@ -29,6 +30,7 @@ import TeamScreen from './scenes/TeamScreen.js';
 import Historial from './scenes/Historial.js';
 import SelectorDePartidas from './scenes/SelectorDePartidas.js';
 import LobbyOnline from './scenes/LobbyOnline.js';
+import LobbyOnlineWS from './scenes/LobbyOnlineWS.js';
 
 
 const config = {
@@ -61,6 +63,7 @@ const config = {
     scene: [
         Bootloader,
         Scene_play,
+        Scene_play_Online,
         mainMenu,
         CintaP1,
         CintaP2,
@@ -88,6 +91,7 @@ const config = {
         TeamScreen,
         Historial,
         SelectorDePartidas,
+        LobbyOnlineWS,
         LobbyOnline,
         Pause
     ]

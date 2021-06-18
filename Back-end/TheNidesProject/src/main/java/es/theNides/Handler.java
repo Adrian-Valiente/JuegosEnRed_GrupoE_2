@@ -119,7 +119,7 @@ public class Handler extends TextWebSocketHandler {
 				
 				ObjectNode conecta = mapper.createObjectNode();
 				conecta.put("tipo", "CREAR");
-				System.out.println("Enviando esta shit");
+				
 				for (WebSocketSession participant : sessions.values()) {
 
 					participant.sendMessage(new TextMessage(conecta.toString()));
@@ -131,13 +131,9 @@ public class Handler extends TextWebSocketHandler {
 			
 		case "PLATFORM":
 		
-			
 			for (WebSocketSession participant : sessions.values()) {
 				if (!participant.getId().equals(session.getId())) {
-//					System.out.println("Escenario : "+ node.get("escenario").asInt());
-//					System.out.println("Escenario : "+ node.get("tipo").asText());
 					participant.sendMessage(new TextMessage(node.toString()));
-					
 				}
 			}
 			
