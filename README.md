@@ -228,7 +228,9 @@ Realizar las pruebas secundarias tiene sus ventajas pero también sus inconvenie
 
 
 
-> ## 5. Diagrama de clases del servidor
+> ## 5. Diagrama de clases del servidor 
+
+> ### 5.1 Diagrama de clases API REST only
 
 > El servidor tiene las siguientes clases que se listan a continuación:
 > - Clase Player: guarda el nombre de los usuarios, su estado, y el lado del jugador (Player 1 o Player 2).
@@ -245,6 +247,40 @@ Realizar las pruebas secundarias tiene sus ventajas pero también sus inconvenie
 
 ![Diagrama clases backend](https://github.com/Elniadas/JuegosEnRed_GrupoE/blob/main/Images/DiagramaClasesBackend.png)
 
+
+> ### 5.2 Diagrama de clases API REST & WebSockets
+
+> El servidor se ha actualizado con nuevas clases empleadas para la comunicación asíncrona con WebSockets. Las clases del diagrama API REST se mantienen iguales, por lo que solo se describirán las empleadas para los Sockets:
+
+> - Clase Handler: Maneja y gestiona todos los mensajes enviados por los clientes para mandarlos al resto de los clientes conectados en la partida. Adicionalmente, lleva la cuenta interna de los jugadores que se han conectado a una sesión de juego; para que los elementos como los cronómetros o la aparición de los objetos en escena empiecen de manera sincronizada, cuando hay dos jugadores en una partida, el servidor manda un mensaje a ambos para que comiencen a correr los tiempos, se pinten las plataformas, se habiliten los controles...
+
+> Gestiona mensajes de posición e input de los jugadores, eventos que ocurren en el juego (interacciones con objetos), velocidad y posición de las plataformas...
+
+![Diagrama clases backend Sockets](https://github.com/Adrian-Valiente/JuegosEnRed_GrupoE_2/blob/Elnidas/Images/Diagrama%20en%20blanco.png)
+
+> ## 6. Documentación del protocolo empleado sobre WebSockets
+
+> Como se ha mencionado en el apartado anterior, hay una única clase que se encarga de gestionar todos los mensajes recibidos por los clientes y de comunicarle al resto de clientes una respuesta. Dado que Guindereis es un juego de pantalla partida en el que ambos jugadores pueden ver lo que lleva a cabo el contrario, todo aquel movimiento, acción o animación que se lleve a cabo en uno de los jugadores, se debe transmitir y simular en la ventana del jugador contrario.
+
+> Es por ello que, cada vez que uno de los jugadores presiona una tecla, cambia de posición, interactúa con un objeto... dicha acción se transmite mediante un mensaje al servidor para que este envíe de vuelta el mensaje al resto de clientes (exceptuando aquel que mandó originalmente el mensaje). 
+
+> Los mensajes en formato JSON tienen un campo concreto "tipo", que distingue unos mensajes de otros. Se enumera a continuación aquellas partes del juego donde se hace uso del protocolo de comunicación:
+
+> - Inputs del jugador: toda tecla funcional en el juego que presione un cliente, se mandará al servidor en forma de booleano (Si se presiona "w" y "a", estas tendrán un valor true que se transmitirá al servidor en formato JSON). El servidor posteriormente manda el mismo mensaje con los valores booleanos al resto de clientes (excluyendo al remitente) y estos simularán la misma acción desencadenada por la/s tecla/s pulsada/s. El campo "tipo" del mensaje JSON que lo distingue del resto de mensajes tiene el valor de "BOTONES".
+
+> - Posiciones de los jugadores: Adicionalmente y para una mayor consistencia, además de pasarse los inputs de los jugadores, se mandan las posiciones "x" e "y" de los jugadores en el escenario. El campo "tipo" del mensaje JSON que lo distingue del resto de mensajes tiene el valor de "POSICION".
+
+> - Pruebas del juego: Estos mensajes van orientados a los "minijuegos" o pruebas necesarias de completar para pasar a niveles posteriores. La estructura del mensaje es muy similar a la de los "Inputs del jugador", dado que las pruebas se basan fundamentalmente en presionar teclas. Nuevamente, las teclas se pasan al servidor con unos valores booleanos, este transmite el mensaje al resto de clientes y se simularán las mismas acciones llevadas a cabo en la correspondiente prueba por el remitente del mensaje. El campo "tipo" del mensaje JSON que lo distingue del resto de mensajes tiene el valor de "PRUEBA".
+
+> - Eventos del juego: Mensajes orientados a la aparición y uso de los portales al terminar una prueba. El cliente envía un mensaje con el portal correspondiente a la prueba terminada que debería aparecer. Posteriormente el servidor envía de vuelta el mensaje al resto de los clientes para que se simule en sus ventanas el mismo evento ocurrido. El campo "tipo" del mensaje JSON que lo distingue del resto de mensajes tiene el valor de "EVENTOS".
+
+> - Conexión de jugadores: Cuando un jugador figure como conectado y listo dentro del juego (accionando el botón de jugar), se le enviará un mensaje al servidor. Internamente , este aumentará un contador de jugadores conectados. Si el número de jugadores conectados es igual a 2, el servidor mandará un mensaje a los clientes de tipo "CREAR", que se explicará a continuación. El campo "tipo" del mensaje JSON (de las conexiones) que lo distingue del resto de mensajes tiene el valor de "CONECTADO".
+
+> - Comienzo sincronizado: Como se ha mencionado anteriormente, cuando el contador de jugadores conectados al servidor es igual a 2, este envía un mensaje a TODOS los clientes (aquí no se excluye al remitente porque es el propio servidor el que envía el mensaje), para que se creen las distintas plataformas, se inicien los cronómetros y se activen los controles de los jugadores. El campo "tipo" del mensaje JSON que envía el servidor y que lo distingue del resto de mensajes tiene el valor de "CREAR".
+
+> - Sincronización de las plataformas: Una vez iniciado el juego y creadas las distintas plataformas, cada cliente comenzará a simular el movimiento de las mismas con funciones de phaser como tweens.timeline. Estas funciones afectan directamente a la velocidad de las distintas plataformas durante un periodo de tiempo antes de volver a cambiarla. Por lo tanto, en el update cada cliente mandará en distintos intervalos de tiempo las velocidades de las plataformas móviles únicamente (dado que la información de las estáticas se mantiene igual en todo momento). El campo "tipo" del mensaje JSON que envía el servidor y que lo distingue del resto de mensajes tiene el valor de "PLATFORM".
+
+> IMPORTANTE: Para que no haya una saturación con el envío de mensajes NO se envían las velocidades de todas las plataformas en todo momento, solo se envían las velocidades de las plataformas del escenario en el que se encuentran los jugadores en un momento determinado.
 
 
 > ## 6. Instrucciones para ejecutar la aplicación
