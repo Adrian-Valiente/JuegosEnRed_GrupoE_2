@@ -17,7 +17,7 @@ class Scene_play_Online extends Phaser.Scene {
         this.plataformasNieveP1 = [];
         this.plataformasNieveP2 = [];
         this.ultimaActualizacionPlataforma = 0;
-        this.ActivarPausa=true;
+        this.ActivarPausa=false;
 
     }
     init(data) {
@@ -88,7 +88,9 @@ class Scene_play_Online extends Phaser.Scene {
 
         // ! poner un fondo enorme que tape todo para simular que esta cargando todo
 
-        this.loadingBG = this.add.image(0, 0, "Loading").setOrigin(0, 0).setSize(this.game.canvas.width, this.game.canvas.height);
+        this.loading1BG = this.add.image(0, 160, "Loading1").setOrigin(0, 0).setScale(0.56,0.56).setDepth(1001);
+        this.loading2BG = this.add.image(0, 520, "Loading2").setOrigin(0, 0).setScale(0.56,0.56).setDepth(1001);
+
 
         //Pensar esto un pcoo mejor
         this.escenarios[0] = new Escenario("Cinta", 0, true);
@@ -160,6 +162,7 @@ class Scene_play_Online extends Phaser.Scene {
         this.blurGU.displayHeight = this.game.canvas.height / 2 - 10;
         this.blurGU.displayWidth = this.game.canvas.width;
         this.blurGU.alpha = 0;
+        this.blurGU.setDepth(1001);
 
         let cinU = this.add.image(1030 + 1180 * this.escenarios[0].pos, 89, "cintaSprite")
 
@@ -205,6 +208,7 @@ class Scene_play_Online extends Phaser.Scene {
         this.blurGD.displayHeight = this.game.canvas.height / 2;
         this.blurGD.displayWidth = this.game.canvas.width;
         this.blurGD.alpha = 0;
+        this.blurGD.setDepth(1001);
 
         //se ha modificado la posición de la colisión de la cinta para junto a un sprite
         let cintaD = this.physics.add.image(1024 + 1180 * this.escenarios[0].pos, 483, "muro")
@@ -305,7 +309,7 @@ class Scene_play_Online extends Phaser.Scene {
         this.escBU2.displayHeight = this.game.canvas.height / 2;
         this.escBU2.displayWidth = this.game.canvas.width;
         this.escBU2.alpha = 0;
-        this.escBU2.setDepth(11);
+        this.escBU2.setDepth(1001);
 
 
         //Parte jugador 2
@@ -352,7 +356,7 @@ class Scene_play_Online extends Phaser.Scene {
         this.escBU22.displayHeight = this.game.canvas.height / 2;
         this.escBU22.displayWidth = this.game.canvas.width;
         this.escBU22.alpha = 0;
-        this.escBU22.setDepth(11)
+        this.escBU22.setDepth(1001)
 
 
         //Plataformas jugador 1
@@ -438,6 +442,7 @@ class Scene_play_Online extends Phaser.Scene {
         this.blurElectricidadU.displayHeight = this.game.canvas.height / 2 - 10;
         this.blurElectricidadU.displayWidth = this.game.canvas.width;
         this.blurElectricidadU.alpha = 0;
+        this.blurElectricidadU.setDepth(1001);
 
         //Plataformas jugador 1
         // ! this.crearPlataformasElectricidad1(that);
@@ -489,6 +494,7 @@ class Scene_play_Online extends Phaser.Scene {
         this.blurElectricidadD.displayHeight = this.game.canvas.height / 2;
         this.blurElectricidadD.displayWidth = this.game.canvas.width;
         this.blurElectricidadD.alpha = 0;
+        this.blurElectricidadD.setDepth(1001);
 
 
 
@@ -529,6 +535,7 @@ class Scene_play_Online extends Phaser.Scene {
         this.blurLaboratorioU.displayHeight = this.game.canvas.height / 2 - 10;
         this.blurLaboratorioU.displayWidth = this.game.canvas.width;
         this.blurLaboratorioU.alpha = 0;
+        this.blurLaboratorioU.setDepth(1001);
 
         // ! this.crearPlataformasLaboratorio1();
 
@@ -571,6 +578,7 @@ class Scene_play_Online extends Phaser.Scene {
         this.blurLaboratorioD.displayHeight = this.game.canvas.height / 2;
         this.blurLaboratorioD.displayWidth = this.game.canvas.width;
         this.blurLaboratorioD.alpha = 0;
+        this.blurLaboratorioD.setDepth(1001);
 
         // ! this.crearPlataformasLaboratorio2();
 
@@ -1448,6 +1456,7 @@ class Scene_play_Online extends Phaser.Scene {
             this.playP2 = true;
         }
         this.ActivarControles = true;
+        this.ActivarPausa=true;
 
 
 
@@ -3304,11 +3313,11 @@ class Scene_play_Online extends Phaser.Scene {
         if (players[0].status === "" || players[0].status === "disconected" || players[0].status === null) {
             this.borrarIntervalos();
 
-            // let player;
-            // player.user = this.yo.user ;
-            // player.status = this.yo.status ;
-            // player.id = this.yo.id ;
-            // player.side = this.yo.side ;
+            let player=new Object();
+            player.user = this.yo.user ;
+            player.status = this.yo.status ;
+            player.id = this.yo.id ;
+            player.side = this.yo.side ;
 
 
             //! Se ha caido un jugador
@@ -3319,13 +3328,13 @@ class Scene_play_Online extends Phaser.Scene {
                 this.handler.close();
 
 
-            this.yo.user = "";
-            this.yo.status = "";
-            this.yo.id = 0;
-            this.yo.side = 0;
+            // this.yo.user = "";
+            // this.yo.status = "";
+            // this.yo.id = 0;
+            // this.yo.side = 0;
             alert("Player 1 desconectado, volviendo al menu principal");
-            this.eliminarUsuario(this.yo, () => {
-                this.yo = null;
+            this.eliminarUsuario(player, () => {
+                // this.yo = null;
                 this.eliminarUsuario(players[1], () => {
                     console.log("borrados")
                     this.cerrarEscenas();
@@ -3344,13 +3353,13 @@ class Scene_play_Online extends Phaser.Scene {
                 this.handler.close();
 
 
-            this.yo.user = "";
-            this.yo.status = "";
-            this.yo.id = 0;
-            this.yo.side = 0;
+            // this.yo.user = "";
+            // this.yo.status = "";
+            // this.yo.id = 0;
+            // this.yo.side = 0;
             alert("Player 2 desconectado, volviendo al menu principal");
-            this.eliminarUsuario(this.yo, () => {
-                this.yo = null;
+            this.eliminarUsuario(player, () => {
+                // this.yo = null;
                 this.eliminarUsuario(players[0], () => {
                     console.log("borrados")
                     this.cerrarEscenas();
@@ -3742,7 +3751,9 @@ class Scene_play_Online extends Phaser.Scene {
 
 
                 that.empezar();
-                that.loadingBG.destroy();
+                that.loading1BG.destroy();
+                that.loading2BG.destroy();
+                
             } else if (message.tipo = "PLATFORM") {
                 //console.log("LO QUE ME LLEGÓ", message);
                 that.adjustplatforms(message);
