@@ -551,7 +551,8 @@ class LobbyOnline extends Phaser.Scene {
 
         //Desconectamos al usuario cuando cierra la ventana//
 
-        window.addEventListener("beforeunload", function (e) {
+        window.addEventListener('beforeunload', function (e) {
+            
             that.eliminarUsuario(Usuario);
 
         });

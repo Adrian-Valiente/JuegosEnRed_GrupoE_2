@@ -1285,6 +1285,7 @@ class Scene_play_Online extends Phaser.Scene {
             // this.pararP2();
             if (this.online&& this.ActivarPausa) {
                 this.ActivarPausa=false;
+                this.ActivarControles=false;
                 this.scene.launch("Pause", { escena: this, soundManager: this.soundManager, online: this.online, yo: this.yo, partida: this.partidaDatos })
             }
 
@@ -3258,6 +3259,7 @@ class Scene_play_Online extends Phaser.Scene {
             this.yo.status = "";
             this.yo.id = 0;
             this.yo.side = 0;
+            this.cerrarEscenas();
             this.scene.start("MAINMENU", { escena: null, soundManager: this.soundManager });
         })
 
@@ -3292,6 +3294,7 @@ class Scene_play_Online extends Phaser.Scene {
             this.yo.status = "";
             this.yo.id = 0;
             this.yo.side = 0;
+            this.cerrarEscenas();
             this.scene.start("MAINMENU", { escena: null, soundManager: this.soundManager });
         })
     }
@@ -3325,6 +3328,7 @@ class Scene_play_Online extends Phaser.Scene {
                 this.yo = null;
                 this.eliminarUsuario(players[1], () => {
                     console.log("borrados")
+                    this.cerrarEscenas();
                     this.scene.start("MAINMENU", { escena: null, soundManager: this.soundManager });
                 })
             })
@@ -3349,6 +3353,7 @@ class Scene_play_Online extends Phaser.Scene {
                 this.yo = null;
                 this.eliminarUsuario(players[0], () => {
                     console.log("borrados")
+                    this.cerrarEscenas();
                     this.scene.start("MAINMENU", { escena: null, soundManager: this.soundManager });
                 })
             })
@@ -3753,7 +3758,100 @@ class Scene_play_Online extends Phaser.Scene {
     habilitarPausa(){
         console.log("vamos a activar la pausa")
         setTimeout(()=>{this.ActivarPausa=true},300)
+    
     }
+
+
+    cerrarEscenas() {
+        if (this.game.scene.isActive("CintaP1")) {
+            this.game.scene.stop("CintaP1");
+
+        }
+        if (this.game.scene.isActive("CintaP1V2")) {
+            this.game.scene.stop("CintaP1V2");
+
+        }
+        if (this.game.scene.isActive("ContadorP1")) {
+            this.game.scene.stop("ContadorP1");
+
+        }
+        if (this.game.scene.isActive("ElectricidadP1")) {
+            this.game.scene.stop("ElectricidadP1");
+
+        }
+        if (this.game.scene.isActive("ElectricidadP1V2")) {
+            this.game.scene.stop("ElectricidadP1V2");
+            this.blurElectricidadU.alpha = 0;
+        }
+        if (this.game.scene.isActive("LaboratorioP1")) {
+            this.game.scene.stop("LaboratorioP1");
+
+        }
+        if (this.game.scene.isActive("CintaP2")) {
+            this.game.scene.stop("CintaP2");
+
+        }
+        if (this.game.scene.isActive("CintaP2V2")) {
+            this.game.scene.stop("CintaP2V2");
+
+        }
+        if (this.game.scene.isActive("ContadorP2")) {
+            this.game.scene.stop("ContadorP2");
+
+        }
+        if (this.game.scene.isActive("ElectricidadP2")) {
+            this.game.scene.stop("ElectricidadP2");
+
+        }
+        if (this.game.scene.isActive("ElectricidadP2V2")) {
+            this.game.scene.stop("ElectricidadP2V2");
+
+        }
+        if (this.game.scene.isActive("LaboratorioP2")) {
+            this.game.scene.stop("LaboratorioP2");
+
+        }
+        if (this.game.scene.isActive("CintaTP1")) {
+            this.game.scene.stop("CintaTP1");
+
+        }
+        if (this.game.scene.isActive("CintaTP2")) {
+            this.game.scene.stop("CintaTP2");
+
+        }
+        if (this.game.scene.isActive("ContadorTP1")) {
+            this.game.scene.stop("ContadorTP1");
+
+        }
+        if (this.game.scene.isActive("ContadorTP2")) {
+            this.game.scene.stop("ContadorTP2");
+
+        }
+        if (this.game.scene.isActive("ElectricidadTP1")) {
+            this.game.scene.stop("ElectricidadTP1");
+
+        }
+        if (this.game.scene.isActive("ElectricidadTP2")) {
+            this.game.scene.stop("ElectricidadTP2");
+
+        }
+        if (this.game.scene.isActive("LaboratorioTP1")) {
+            this.game.scene.stop("LaboratorioTP1");
+
+        }
+        if (this.game.scene.isActive("LaboratorioTP2")) {
+            this.game.scene.stop("LaboratorioTP2");
+
+        }
+        this.escenasActivas[0] = false;
+        this.escenasActivas[1] = false;
+
+    }
+
+
+
+
+
 
 }
 

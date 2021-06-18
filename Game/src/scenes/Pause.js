@@ -122,6 +122,7 @@ class Pause extends Phaser.Scene {
 
                 console.log("SCENE ONLINE STOP");
                 //this.scene.resume("Scene_play");
+                this.data.escena.ActivarControles=true;
                 this.data.escena.habilitarPausa();
                 this.scene.stop();
 
@@ -171,6 +172,7 @@ class Pause extends Phaser.Scene {
             } else {
 
                 that.data.escena.habilitarPausa();
+                that.data.escena.ActivarControles=true;
                 this.scene.stop("Pause");
             }
 
