@@ -88,8 +88,8 @@ class Scene_play_Online extends Phaser.Scene {
 
         // ! poner un fondo enorme que tape todo para simular que esta cargando todo
 
-        this.loading1BG = this.add.image(0, 160, "Loading1").setOrigin(0, 0).setScale(0.56,0.56).setDepth(1001);
-        this.loading2BG = this.add.image(0, 520, "Loading2").setOrigin(0, 0).setScale(0.56,0.56).setDepth(1001);
+        this.loading1BG = this.add.image(0, 160, "Cargando1").setOrigin(0, 0).setScale(0.56,0.56).setDepth(1001);
+        this.loading2BG = this.add.image(0, 520, "Cargando2").setOrigin(0, 0).setScale(0.56,0.56).setDepth(1001);
 
 
         //Pensar esto un pcoo mejor
@@ -3345,6 +3345,12 @@ class Scene_play_Online extends Phaser.Scene {
         }
         if (players[1].status === "" || players[1].status === "disconected" || players[1].status === null) {
             this.borrarIntervalos();
+
+            let player=new Object();
+            player.user = this.yo.user ;
+            player.status = this.yo.status ;
+            player.id = this.yo.id ;
+            player.side = this.yo.side ;
 
 
             // ? Desconectamos del socket

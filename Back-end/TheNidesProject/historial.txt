@@ -12,3 +12,4 @@
 18/6 | Ha ganado el jugador : b con un tiempo de: 04 : 10 : 91
 18/6 | Ha ganado el jugador : a con un tiempo de: 00 : 09 : 44
 18/6 | Ha ganado el jugador : j2 con un tiempo de: 00 : 09 : 12
+19/6 | Ha ganado el jugador : a con un tiempo de: 02 : 46 : 55
