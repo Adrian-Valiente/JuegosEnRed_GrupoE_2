@@ -5,6 +5,10 @@
 - Daniel Sánchez Cánovas:   d.sanchezc.2018@alumnos.urjc.es    | Elniadas
 - Javier Morales Lasheras:  j.morales.2018@alumnos.urjc.es     | javixmorales
 
+# VÍDEO - Uso del juego
+
+[![GÜINDEREIS](https://img.youtube.com/vi/_5sK8UHg8rc/0.jpg)](https://www.youtube.com/watch?v=_5sK8UHg8rc)
+
 # GDD - JUEGOS EN RED
 
 > ## Concepto del juego
