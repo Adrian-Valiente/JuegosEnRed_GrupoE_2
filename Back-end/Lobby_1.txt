@@ -1,0 +1,2 @@
+Jugador1 (18 : 42) - Hola! ¿Una partida?
+Jugador2 (18 : 43) - Claro!
