@@ -8,6 +8,7 @@ class Pause extends Phaser.Scene {
 
     }
     init(data) {
+        this.online = false;
         this.data = data;
         this.online = data.online
         if (this.online) {
@@ -33,13 +34,49 @@ class Pause extends Phaser.Scene {
         pause.displayWidth = this.game.canvas.width * 0.65;
         this.print0 = this.add.text(this.game.canvas.width / 2 - 75, this.game.canvas.height / 2 - 100, '').setFontSize(45)
         this.textoSalir = this.add.bitmapText(287, 126, "MotionControl", "", -60).setDepth(100);
-        this.textoSalir.tint="#000000";
-        
+        this.textoSalir.tint = "#000000";
 
-        if (this.scene.isActive("Scene_play")) {
-            console.log("Iniciando pausa en Scene_play")
-            this.scene.pause("Scene_play")
+        if (this.online !== true) {
 
+
+            if (this.scene.isActive("Scene_play")) {
+                console.log("Iniciando pausa en Scene_play")
+                this.scene.pause("Scene_play")
+
+
+                let reanudar = this.crearBotonRenudar();
+
+                let salir = this.crearBotonSalir();
+
+
+                let config = this.crearBotonConfig(reanudar, salir);
+            }
+
+
+
+            if (this.scene.isActive("Tutorial")) {
+
+                console.log("Iniciando pausa en tutorial")
+                this.scene.pause("Tutorial")
+
+                let reanudar = this.crearBotonRenudar();
+
+
+
+                let salir = this.crearBotonSalir();
+
+
+
+
+                let config = this.crearBotonConfig(reanudar, salir);
+
+            }
+
+
+
+        } else {
+
+            console.log("Iniciando pausa en Scene_play_ONLINE")
 
             let reanudar = this.crearBotonRenudar();
 
@@ -47,37 +84,14 @@ class Pause extends Phaser.Scene {
 
 
             let config = this.crearBotonConfig(reanudar, salir);
-        }
-
-
-
-        if (this.scene.isActive("Tutorial")) {
-
-            console.log("Iniciando pausa en tutorial")
-            this.scene.pause("Tutorial")
-
-            let reanudar = this.crearBotonRenudar();
-
-
-
-            let salir = this.crearBotonSalir();
-
-
-
-
-            let config = this.crearBotonConfig(reanudar, salir);
-
 
         }
-
-
-
-
-
-
 
 
     }
+
+
+
     unlock() {
         console.log("unlock")
 
@@ -89,18 +103,31 @@ class Pause extends Phaser.Scene {
 
         if (this.keyboard.ESC.isDown === true) {
             console.log("Intentando salir")
-            if (this.scene.isPaused("Scene_play")) {
-                this.scene.resume("Scene_play");
-                this.data.escena.continuarP1();
-                this.data.escena.continuarP2();
-                console.log("Saliendo de la pausa")
-                this.scene.stop("Pause");
+            if (this.online !== true) {
+                if (this.scene.isPaused("Scene_play")) {
+                    this.scene.resume("Scene_play");
+                    this.data.escena.continuarP1();
+                    this.data.escena.continuarP2();
+                    console.log("Saliendo de la pausa")
+                    this.scene.stop("Pause");
+                }
+                if (this.scene.isPaused("Tutorial")) {
+                    this.scene.resume("Tutorial");
+                    console.log("Saliendo de la pausa")
+                    this.scene.stop("Pause");
+                }
+
+
+            } else {
+
+                console.log("SCENE ONLINE STOP");
+                //this.scene.resume("Scene_play");
+                this.data.escena.ActivarControles=true;
+                this.data.escena.habilitarPausa();
+                this.scene.stop();
+
             }
-            if (this.scene.isPaused("Tutorial")) {
-                this.scene.resume("Tutorial");
-                console.log("Saliendo de la pausa")
-                this.scene.stop("Pause");
-            }
+
         }
 
 
@@ -110,6 +137,7 @@ class Pause extends Phaser.Scene {
 
 
     crearBotonRenudar() {
+        let that = this;
 
         let reanudar = this.add.image(this.game.canvas.width / 2, this.game.canvas.height * 0.3, "buttonPlay");
         reanudar.displayHeight = this.game.canvas.height * 0.1;
@@ -129,21 +157,30 @@ class Pause extends Phaser.Scene {
         })
 
         reanudar.on("pointerup", () => {
-            if (this.scene.isPaused("Tutorial")) {
-                this.scene.resume("Tutorial");
+
+            if (this.online !== true) {
+                if (this.scene.isPaused("Tutorial")) {
+                    this.scene.resume("Tutorial");
+                    this.scene.stop("Pause");
+                }
+                if (this.scene.isPaused("Scene_play")) {
+                    this.scene.resume("Scene_play");
+                    this.data.escena.continuarP1();
+                    this.data.escena.continuarP2();
+                    this.scene.stop("Pause");
+                }
+            } else {
+
+                that.data.escena.habilitarPausa();
+                that.data.escena.ActivarControles=true;
                 this.scene.stop("Pause");
             }
-            if (this.scene.isPaused("Scene_play")) {
-                this.scene.resume("Scene_play");
-                this.data.escena.continuarP1();
-                this.data.escena.continuarP2();
-                this.scene.stop("Pause");
-            }
+
         })
         reanudar.texto = this.add.bitmapText(reanudar.x - 65, reanudar.y - 25, "MotionControl", "Reanudar", -40);
-        reanudar.texto.tint="#000000";
+        reanudar.texto.tint = "#000000";
 
-        
+
         return reanudar;
 
     }
@@ -154,9 +191,9 @@ class Pause extends Phaser.Scene {
         salir.displayHeight = this.game.canvas.height * 0.1;
         salir.displayWidth = this.game.canvas.width * 0.2;
         salir.texto = this.add.bitmapText(salir.x - 34, salir.y - 25, "MotionControl", "Salir", -40);
-        salir.texto.tint="#000000";
+        salir.texto.tint = "#000000";
 
-        
+
         salir.setInteractive();
 
         salir.on("pointerover", () => {
@@ -181,23 +218,26 @@ class Pause extends Phaser.Scene {
                 this.scene.stop("Pause");
             }
             if (this.scene.isPaused("Scene_play")) {
-                if (this.online) {
-                    this.data.escena.borrarIntervalos();
-                    this.cerrarEscenas();
-                    this.data.escena.eliminarUsuario(this.data.escena.yo,()=>{
-                      
-                        this.scene.start("MAINMENU", { escena: null, soundManager: this.data.escena.soundManager });
-                    })
 
-                } else {
-                    this.data.escena.borrarIntervalos();
-                    this.cerrarEscenas();
-                    this.scene.stop("Scene_play");
-                    this.scene.start("MAINMENU");
-                    this.scene.stop("Pause");
-                }
+                this.data.escena.borrarIntervalos();
+                this.cerrarEscenas();
+                this.scene.stop("Scene_play");
+                this.scene.start("MAINMENU");
+                this.scene.stop("Pause");
+
 
             }
+
+            if (this.online) {
+                this.data.escena.borrarIntervalos();
+                this.cerrarEscenas();
+                this.eliminarUsuario(this.yo, () => {
+                    this.scene.stop("Scene_play_Online");
+                    this.scene.start("MAINMENU", { escena: null, soundManager: this.data.escena.soundManager });
+                })
+
+            }
+
         })
 
         return salir;
@@ -224,8 +264,8 @@ class Pause extends Phaser.Scene {
 
         let r = reanudar;
         let s = salir;
-        let texConfig = this.add.bitmapText(config.x - 46, config.y - 25, "MotionControl", "Sonido", -40);        
-        texConfig.tint="#000000";
+        let texConfig = this.add.bitmapText(config.x - 46, config.y - 25, "MotionControl", "Sonido", -40);
+        texConfig.tint = "#000000";
 
         config.on("pointerup", () => {
             let salir;
@@ -238,11 +278,11 @@ class Pause extends Phaser.Scene {
                 salir.on("pointerover", () => {
                     salir.setFrame(1);
                 })
-        
+
                 salir.on("pointerout", () => {
                     salir.setFrame(0);
                 })
-        
+
                 salir.on("pointerdown", () => {
                     salir.setFrame(2);
                 })
@@ -279,16 +319,16 @@ class Pause extends Phaser.Scene {
                 salir.on("pointerover", () => {
                     salir.setFrame(1);
                 })
-        
+
                 salir.on("pointerout", () => {
                     salir.setFrame(0);
                 })
-        
+
                 salir.on("pointerdown", () => {
                     salir.setFrame(2);
                 })
 
-                
+
                 this.textoSalir.text = 'Salir'
 
                 salir.on("pointerup", () => {
@@ -310,6 +350,45 @@ class Pause extends Phaser.Scene {
                 this.createSliderSound();
             }
 
+            if (this.online) {
+                let salir = this.add.image(this.game.canvas.width / 2 - 200, this.game.canvas.height * 0.5 - 200, "buttonPlay");
+                salir.displayHeight = this.game.canvas.height * 0.1;
+                salir.displayWidth = this.game.canvas.width * 0.2;
+                salir.setInteractive();
+
+                salir.on("pointerover", () => {
+                    salir.setFrame(1);
+                })
+
+                salir.on("pointerout", () => {
+                    salir.setFrame(0);
+                })
+
+                salir.on("pointerdown", () => {
+                    salir.setFrame(2);
+                })
+
+
+                this.textoSalir.text = 'Salir'
+
+                salir.on("pointerup", () => {
+                    this.print0.text = ''
+                    this.textoSalir.text = ''
+                    salir.destroy();
+                    this.Slider.destroy();
+                    let re = this.crearBotonRenudar();
+                    let sa = this.crearBotonSalir();
+                    this.crearBotonConfig(re, sa);
+                })
+
+                config.destroy();
+                texConfig.destroy();
+                r.texto.destroy();
+                r.destroy();
+                s.texto.destroy();
+                s.destroy();
+                this.createSliderSound();
+            }
 
 
         })
@@ -432,6 +511,64 @@ class Pause extends Phaser.Scene {
         this.data.escena.escenasActivas[1] = false;
 
     }
+
+
+
+
+
+
+    putPlayer(player, callback) {
+
+        let partidaID = this.partidaDatos.id;
+        $.ajax({
+            method: "PUT",
+            url: 'http://localhost:8080/partida/player/' + partidaID,
+            data: JSON.stringify(player),
+            processData: false,
+            headers: {
+                "Content-Type": "application/json"
+            }
+        }).done(function (partida) {
+            if (typeof callback !== 'undefined') {
+
+                callback(partida)
+            }
+        }).fail(() => {
+            //Si el servidor no está disponible, borramos todos los intervalos de tiempo establecidos
+            this.borrarIntervalos();
+            alert("Los servidores no se encuentran disponibles, volviendo al menú principal");
+            //borramos el nombre, el estado, los ids y las posiciones del JSON, y devolvemos al jugador al menú principal
+            // ? Desconectamos del socket
+            this.online = false;
+            if (this.data.escena.handler.readyState === 1)
+                this.data.escena.handler.close();
+            this.yo.user = "";
+            this.yo.status = "";
+            this.yo.id = 0;
+            this.yo.side = 0;
+            this.scene.start("MAINMENU", { escena: null, soundManager: this.soundManager });
+        })
+    }
+
+
+
+    eliminarUsuario(player, callback) {
+        //console.log(player)
+        if (this.data.escena.handler.readyState === 1)
+        this.data.escena.handler.close();
+        player.status = null
+        player.user = null;
+        player.id = 0;
+        this.putPlayer(player, callback)
+
+    }
+
+
+
+
+
+
+
 
 
 

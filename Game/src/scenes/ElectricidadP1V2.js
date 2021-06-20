@@ -6,6 +6,7 @@ class ElectricidadP1V2 extends Phaser.Scene {
     init(data) {
         this.data = data;
         this.soundManager = data.soundManager
+        this.online = this.data.escena.online
     }
 
     preload() {
@@ -131,68 +132,181 @@ class ElectricidadP1V2 extends Phaser.Scene {
         this.input.keyboard.on('keyup-' + 'W', this.unlock.bind(this));
         this.input.keyboard.on('keyup-' + 'S', this.unlock.bind(this));
         this.keyLock = false;
-
+        if (this.online && this.data.escena.yo.side == 2) {
+            this.onMensajeHandler()
+        }
 
 
     }
     unlock() {
         //console.log("unlock")
+        if (this.online) {
+            var msg = {
+                tipo: "PRUEBA",
+                a: false,
+                d: false,
+                w: false,
+                s: false,
+                e: false,
+                dato: 0
 
+            }
+            this.data.escena.handler.send(JSON.stringify(msg));
+        }
         this.keyLock = false;
     }
 
 
     update() {
 
+        if (this.online && this.data.escena.yo.side === 1) {
+            if (this.keyboard.A.isDown == true && this.keyLock == false) {
+                this.posicion--;
+                if (this.posicion < 0) {
+                    this.posicion = this.piezas.length - 1;
+                }
+                this.actualizarMarco();
+                this.keyLock = true;
 
-        if (this.keyboard.A.isDown == true && this.keyLock == false) {
-            this.posicion--;
-            if(this.posicion<0){
-                this.posicion=this.piezas.length-1;
+                var msg = {
+                    tipo: "PRUEBA",
+                    a: true,
+                    d: false,
+                    w: false,
+                    s: false,
+                    e: false,
+                    dato: 0
+
+                }
+                this.data.escena.handler.send(JSON.stringify(msg));
+
+
             }
-            this.actualizarMarco();
-            this.keyLock = true;
-        }
-        if (this.keyboard.D.isDown == true && this.keyLock == false) {
-            
-            this.posicion++;
-            if(this.posicion>this.piezas.length-1){
-                this.posicion=0;
+            if (this.keyboard.D.isDown == true && this.keyLock == false) {
+
+                this.posicion++;
+                if (this.posicion > this.piezas.length - 1) {
+                    this.posicion = 0;
+                }
+
+                this.actualizarMarco();
+                this.keyLock = true;
+
+                var msg = {
+                    tipo: "PRUEBA",
+                    a: false,
+                    d: true,
+                    w: false,
+                    s: false,
+                    e: false,
+                    dato: 0
+
+                }
+                this.data.escena.handler.send(JSON.stringify(msg));
+
             }
 
-            this.actualizarMarco();
-            this.keyLock = true;
 
-        }
+            if (this.keyboard.W.isDown === true && this.keyLock == false) {
+                this.keyLock = true;
+                this.piezas[this.posicion].angle += 90;
+                this.soundManager.play('electricidad');
+                this.completado();
 
-        //Salir prueba
+                var msg = {
+                    tipo: "PRUEBA",
+                    a: false,
+                    d: false,
+                    w: true,
+                    s: false,
+                    e: false,
+                    dato: 0
 
-        
-        if (this.keyboard.Q.isDown === true && this.keyLock == false) {
-            console.log("Cerrando");
-            this.data.escena.escenasActivas[0] = false;
-            this.keyLock = true;
+                }
+                this.data.escena.handler.send(JSON.stringify(msg));
 
-            this.scene.stop(this);
-        }
-        //*/
+                //console.log("La pieza: " +this.posicion+" tiene este angulo : "+this.piezas[this.posicion].angle);
+            }
 
-        if (this.keyboard.W.isDown === true && this.keyLock == false) {
-            this.keyLock = true;
-            this.piezas[this.posicion].angle+=90;
-            this.soundManager.play('electricidad'); 
-            this.completado();
-            
-            //console.log("La pieza: " +this.posicion+" tiene este angulo : "+this.piezas[this.posicion].angle);
-        }
+            if (this.keyboard.S.isDown === true && this.keyLock == false) {
+                this.keyLock = true;
+                this.piezas[this.posicion].angle -= 90;
+                this.soundManager.play('electricidad');
+                this.completado();
 
-        if (this.keyboard.S.isDown === true && this.keyLock == false) {
-            this.keyLock = true;
-            this.piezas[this.posicion].angle-=90;
-            this.soundManager.play('electricidad'); 
-            this.completado();
-           
-            //console.log("La pieza: " +this.posicion+" tiene este angulo : "+this.piezas[this.posicion].angle);
+                var msg = {
+                    tipo: "PRUEBA",
+                    a: false,
+                    d: false,
+                    w: false,
+                    s: true,
+                    e: false,
+                    dato: 0
+
+                }
+                this.data.escena.handler.send(JSON.stringify(msg));
+
+                //console.log("La pieza: " +this.posicion+" tiene este angulo : "+this.piezas[this.posicion].angle);
+            }
+        } else if (this.online === null || !this.online || this.online === undefined) {
+            if (this.keyboard.A.isDown == true && this.keyLock == false) {
+                this.posicion--;
+                if (this.posicion < 0) {
+                    this.posicion = this.piezas.length - 1;
+                }
+                this.actualizarMarco();
+                this.keyLock = true;
+
+
+
+            }
+            if (this.keyboard.D.isDown == true && this.keyLock == false) {
+
+                this.posicion++;
+                if (this.posicion > this.piezas.length - 1) {
+                    this.posicion = 0;
+                }
+
+                this.actualizarMarco();
+                this.keyLock = true;
+
+            }
+
+
+            //#region salir prueba
+
+            /*
+            if (this.keyboard.Q.isDown === true && this.keyLock == false) {
+                console.log("Cerrando");
+                this.data.escena.escenasActivas[0] = false;
+                this.keyLock = true;
+    
+                this.scene.stop(this);
+            }
+             //*/
+            //#endregion
+
+
+            if (this.keyboard.W.isDown === true && this.keyLock == false) {
+                this.keyLock = true;
+                this.piezas[this.posicion].angle += 90;
+                this.soundManager.play('electricidad');
+                this.completado();
+
+
+                //console.log("La pieza: " +this.posicion+" tiene este angulo : "+this.piezas[this.posicion].angle);
+            }
+
+            if (this.keyboard.S.isDown === true && this.keyLock == false) {
+                this.keyLock = true;
+                this.piezas[this.posicion].angle -= 90;
+                this.soundManager.play('electricidad');
+                this.completado();
+
+
+                //console.log("La pieza: " +this.posicion+" tiene este angulo : "+this.piezas[this.posicion].angle);
+            }
+
         }
 
     }
@@ -245,11 +359,71 @@ class ElectricidadP1V2 extends Phaser.Scene {
                 this.data.escena.blurElectricidadU.alpha = 0;
                 this.data.escena.EP1.destroy();
                 this.data.escena.crearBlindP1();
+                if (this.online && this.data.escena.yo.side == 2) {
+                    this.data.escena.onMensajeHandler();
+
+                }
                 this.scene.stop(this)
             },500);
         }
         console.log(casos)
     }
+
+
+    onMensajeHandler() {
+        var that = this;
+        this.data.escena.handler.onmessage = function (msg) {
+
+            var message = JSON.parse(msg.data)
+            //console.log("message, "+ message.tipo ,message);
+            if (message.tipo === "POSICION") {
+
+                that.data.escena.PlayerPositionMnj(message);
+            } else if (message.tipo === "BOTONES") {
+                that.data.escena.playerPulseMnj(message);
+            } else if (message.tipo === "EVENTOS") {
+                that.data.escena.gameEventMnj(message);
+            } else if (message.tipo === "PRUEBA") {
+           
+                if (message.a === true) {
+                    that.posicion--;
+                    if (that.posicion < 0) {
+                        that.posicion = that.piezas.length - 1;
+                    }
+                    that.actualizarMarco();
+
+                }
+                if (message.d === true) {
+
+                    that.posicion++;
+                    if (that.posicion > that.piezas.length - 1) {
+                        that.posicion = 0;
+                    }
+
+                    that.actualizarMarco();
+
+                }
+                if (message.w === true) {
+
+
+                    that.piezas[that.posicion].angle += 90;
+                    that.soundManager.play('electricidad');
+                    that.completado();
+                }
+                if (message.s === true) {
+
+
+                    that.piezas[that.posicion].angle -= 90;
+                    that.soundManager.play('electricidad');
+                    that.completado();
+                }
+            }
+
+        }
+
+
+    }
+
 
 
 
