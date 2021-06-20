@@ -264,7 +264,7 @@ Realizar las pruebas secundarias tiene sus ventajas pero también sus inconvenie
 
 > ## 6. Documentación del protocolo empleado sobre WebSockets
 
-> Como se ha mencionado en el apartado anterior, hay una única clase que se encarga de gestionar todos los mensajes recibidos por los clientes y de comunicarle al resto de clientes una respuesta. Dado que Guindereis es un juego de pantalla partida en el que ambos jugadores pueden ver lo que lleva a cabo el contrario, todo aquel movimiento, acción o animación que se lleve a cabo en uno de los jugadores, se debe transmitir y simular en la ventana del jugador contrario.
+> Como se ha mencionado en el apartado anterior, hay una única clase que se encarga de gestionar todos los mensajes recibidos por los clientes y de comunicarle al resto de clientes una respuesta. Dado que Güindereis es un juego de pantalla partida en el que ambos jugadores pueden ver lo que lleva a cabo el contrario, todo aquel movimiento, acción o animación que se lleve a cabo en uno de los jugadores, se debe transmitir y simular en la ventana del jugador contrario.
 
 > Es por ello que, cada vez que uno de los jugadores presiona una tecla, cambia de posición, interactúa con un objeto... dicha acción se transmite mediante un mensaje al servidor para que este envíe de vuelta el mensaje al resto de clientes (exceptuando aquel que mandó originalmente el mensaje). 
 
