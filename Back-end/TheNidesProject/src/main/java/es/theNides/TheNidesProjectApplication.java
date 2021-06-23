@@ -2,6 +2,7 @@ package es.theNides;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
@@ -20,8 +21,9 @@ public class TheNidesProjectApplication implements WebSocketConfigurer {
 		registry.addHandler(playerPulse(), "/Lobby_5").setAllowedOrigins("*");
 		
 	}
-
-	private WebSocketHandler playerPulse() {
+	
+	@Bean
+	public WebSocketHandler playerPulse() {
 
 		return new Handler();
 	}

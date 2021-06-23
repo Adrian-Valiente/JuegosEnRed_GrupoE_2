@@ -1,4 +1,5 @@
 import Escenario from '../gameObjects/Escenario.js';
+let dir="https://guindereis-server-final.herokuapp.com/"
 class Scene_play_Online extends Phaser.Scene {
     constructor() {
         super({ key: "Scene_play_Online" });
@@ -30,7 +31,7 @@ class Scene_play_Online extends Phaser.Scene {
             this.yo = data.yo
             this.lobby = this.data.lobby;
             //playerPulse
-            var handler = new WebSocket('ws://127.0.0.1:8080/' + this.data.lobby.nombre);
+            var handler = new WebSocket("wss://guindereis-server-final.herokuapp.com/" + this.data.lobby.nombre);
             this.handler = handler;
 
             this.handler.onerror = function (e) {
@@ -3237,7 +3238,7 @@ class Scene_play_Online extends Phaser.Scene {
         var that = this
         let idPartida = this.partidaDatos.id
         $.ajax({
-            url: 'http://localhost:8080/partida/' + idPartida,
+            url: dir + 'partida/' + idPartida,
 
         }).done(function (partida) {
             //console.log("Partida de getLobby", partida)
@@ -3279,7 +3280,7 @@ class Scene_play_Online extends Phaser.Scene {
         let partidaID = this.partidaDatos.id;
         $.ajax({
             method: "PUT",
-            url: 'http://localhost:8080/partida/player/' + partidaID,
+            url: dir+'partida/player/' + partidaID,
             data: JSON.stringify(player),
             processData: false,
             headers: {
