@@ -1,6 +1,7 @@
 const COLOR_PRIMARY = 0x4e342e;
 const COLOR_LIGHT = 0x7b5e57;
 const COLOR_DARK = 0x260e04;
+let dir="https://guindereis-server-final.herokuapp.com/"
 
 class Pause extends Phaser.Scene {
     constructor() {
@@ -522,7 +523,7 @@ class Pause extends Phaser.Scene {
         let partidaID = this.partidaDatos.id;
         $.ajax({
             method: "PUT",
-            url: 'http://localhost:8080/partida/player/' + partidaID,
+            url: dir + 'partida/player/' + partidaID,
             data: JSON.stringify(player),
             processData: false,
             headers: {

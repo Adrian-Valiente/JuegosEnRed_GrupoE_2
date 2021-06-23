@@ -157,7 +157,8 @@ class SelectorDePartidas extends Phaser.Scene {
     getPartidas(callback) {
         var that = this;
         $.ajax({
-            url: 'http://localhost:8080/partida/',
+            url: 'https://guindereis-server-final.herokuapp.com/partida/',
+
 
         }).done(function (partidas) {
             console.log(partidas);

@@ -1,3 +1,5 @@
+let dir="https://guindereis-server-final.herokuapp.com/"
+
 class Victoria extends Phaser.Scene {
     constructor() {
         super({ key: "Victoria" });
@@ -95,7 +97,7 @@ class Victoria extends Phaser.Scene {
         var that = this;
         $.ajax({
             method: "POST",
-            url: 'http://localhost:8080/historial/fileWrite',
+            url: dir + 'historial/fileWrite',
             data: mensaje,
             processData: false,
             headers: {
@@ -164,7 +166,7 @@ class Victoria extends Phaser.Scene {
         let partidaID = this.partidaDatos.id;
         $.ajax({
             method: "PUT",
-            url: 'http://localhost:8080/partida/player/' + partidaID,
+            url: dir + 'partida/player/' + partidaID,
             data: JSON.stringify(player),
             processData: false,
             headers: {
@@ -185,7 +187,7 @@ class Victoria extends Phaser.Scene {
         var that = this
         let idPartida = this.partidaDatos.id
         $.ajax({
-            url: 'http://localhost:8080/partida/' + idPartida,
+            url: dir +'partida/' + idPartida,
 
         }).done(function (partida) {
             //console.log("Partida de getLobby", partida)

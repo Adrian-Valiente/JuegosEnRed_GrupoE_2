@@ -78,7 +78,7 @@ class Historial extends Phaser.Scene {
 
     getHistorial(callback) {
         $.ajax({
-            url: 'http://localhost:8080/historial/fileRead',
+            url: 'https://guindereis-server-final.herokuapp.com/historial/fileRead',
 
         }).done(function (mensajes) {
             console.log("Chat conseguido", callback)

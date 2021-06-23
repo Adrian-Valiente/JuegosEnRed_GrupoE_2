@@ -876,7 +876,7 @@ class LobbyOnline extends Phaser.Scene {
 
         let idPartida = this.partidaDatos.id
         $.ajax({
-            url: 'http://localhost:8080/partida/fileRead/' + idPartida,
+            url: 'https://guindereis-server-final.herokuapp.com/partida/fileRead/' + idPartida,
 
         }).done(function (mensajes) {
             //console.log("Chat conseguido", callback)
@@ -893,7 +893,7 @@ class LobbyOnline extends Phaser.Scene {
         var that = this
         let idPartida = this.partidaDatos.id
         $.ajax({
-            url: 'http://localhost:8080/partida/' + idPartida,
+            url: 'https://guindereis-server-final.herokuapp.com/partida/' + idPartida,
 
         }).done(function (partida) {
             //console.log("Partida de getLobby", partida)
@@ -935,7 +935,7 @@ class LobbyOnline extends Phaser.Scene {
     playerConnected(callback) {
         $.ajax({
             method: "POST",
-            url: 'http://localhost:8080/player/',
+            url: 'https://guindereis-server-final.herokuapp.com/player/',
             data: JSON.stringify({ "user": "Unknown_User", "status": "connected" }),
             processData: false,
             headers: {
@@ -974,7 +974,7 @@ class LobbyOnline extends Phaser.Scene {
         let idPartida = this.partidaDatos.id
         $.ajax({
             method: "POST",
-            url: 'http://localhost:8080/partida/fileWrite/' + idPartida,
+            url: 'https://guindereis-server-final.herokuapp.com/partida/fileWrite/' + idPartida,
             data: mensaje,
             processData: false,
             headers: {
@@ -999,7 +999,7 @@ class LobbyOnline extends Phaser.Scene {
         let partidaID = this.partidaDatos.id;
         $.ajax({
             method: "PUT",
-            url: 'http://localhost:8080/partida/player/' + partidaID,
+            url: 'https://guindereis-server-final.herokuapp.com/partida/player/' + partidaID,
             data: JSON.stringify(player),
             processData: false,
             headers: {
@@ -1021,7 +1021,7 @@ class LobbyOnline extends Phaser.Scene {
         let partida = this.partidaDatos;
         $.ajax({
             method: "PUT",
-            url: 'http://localhost:8080/partida/' + partidaID,
+            url: 'https://guindereis-server-final.herokuapp.com/partida/' + partidaID,
             data: JSON.stringify(partida),
             processData: false,
             headers: {
